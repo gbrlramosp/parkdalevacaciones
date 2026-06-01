@@ -1,0 +1,1166 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Hilos de Yecapixtla - Administrador de Vacaciones</title>
+<!-- jsPDF desde CDN confiable con respaldo -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script>
+  // Fallback por si el CDN falla
+  if(typeof window.jspdf === 'undefined') {
+    document.write('<script src="assets/jspdf.umd.min.js"><\/script>');
+  }
+</script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script>
+  if(typeof window.supabase === 'undefined') {
+    document.write('<script src="assets/supabase.umd.js?v=20260601-1"><\/script>');
+  }
+</script>
+<script src="supabase-config.js?v=20260601-1"></script>
+<style>
+:root {
+  --green-dark: #1f6f35;
+  --green-mid: #2f7d42;
+  --green-light: #5da66a;
+  --green-pale: #e8f5ee;
+  --green-ultra: #f0faf4;
+  --blue-dark: #08243d;
+  --blue-mid: #123a5d;
+  --blue-light: #2d5f8a;
+  --blue-pale: #eaf0f7;
+  --blue-ultra: #f6f8fb;
+  --gray-900: #17202c;
+  --gray-700: #374151;
+  --gray-500: #6b7280;
+  --gray-300: #d1d5db;
+  --gray-100: #f5f7fa;
+  --white: #ffffff;
+  --sidebar-w: 260px;
+  --radius: 12px;
+  --shadow: 0 10px 30px rgba(8,36,61,0.08);
+  --shadow-lg: 0 18px 55px rgba(8,36,61,0.18);
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html{font-family:Arial,Helvetica,sans-serif;-webkit-text-size-adjust:100%}
+body{font-family:Arial,Helvetica,sans-serif;background:var(--gray-100);color:var(--gray-700);min-height:100vh;font-weight:400}
+button,input,select,textarea{font:inherit}
+
+/* LOGIN */
+#loginScreen{display:flex;align-items:center;justify-content:center;min-height:100vh;background:linear-gradient(135deg,#071d33 0%,#123a5d 100%);position:relative;overflow:hidden}
+#loginScreen::before{content:'';position:absolute;inset:0;background:url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23ffffff' fill-opacity='0.04'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E")}
+.login-card{background:rgba(255,255,255,0.98);border:1px solid rgba(255, 255, 255, 0.377);border-radius:18px;padding:44px 40px;width:min(420px,calc(100vw - 32px));box-shadow:var(--shadow-lg);position:relative;z-index:1}
+.login-logo{text-align:center;margin-bottom:28px}
+.brand-logo{display:block;width:220px;max-width:82%;height:auto;object-fit:contain;margin:0 auto 14px;
+  
+}
+.login-logo h1{font-family:Arial,Helvetica,sans-serif;font-size:20px;color:var(--blue-dark);line-height:1.2;font-weight:500}
+.login-logo p{font-size:12px;color:var(--blue-light);font-weight:400;letter-spacing:1.7px;text-transform:uppercase;margin-top:4px}
+.login-form label{display:block;font-size:12px;font-weight:500;color:var(--gray-500);text-transform:uppercase;letter-spacing:0.8px;margin-bottom:6px;margin-top:20px}
+.login-form input{width:100%;padding:12px 16px;border:1px solid var(--gray-300);border-radius:8px;font-size:15px;transition:border-color .2s,box-shadow .2s;outline:none}
+.login-form input:focus{border-color:var(--blue-light)}
+.login-btn{width:100%;margin-top:28px;padding:14px;background:var(--blue-dark);color:white;border:none;border-radius:10px;font-size:15px;font-weight:500;cursor:pointer;letter-spacing:.2px;transition:opacity .2s,transform .1s;box-shadow:0 10px 24px rgba(8,36,61,0.22)}
+.login-btn:hover{opacity:.92;transform:translateY(-1px)}
+.login-error{color:#e53935;font-size:13px;text-align:center;margin-top:10px;display:none}
+
+/* APP SHELL */
+#appShell{display:none;min-height:100vh}
+.sidebar{position:fixed;top:0;left:0;width:var(--sidebar-w);height:100vh;background:linear-gradient(180deg,#071d33 0%,var(--blue-dark) 100%);display:flex;flex-direction:column;z-index:100;box-shadow:4px 0 24px rgba(8,36,61,0.22)}
+.sidebar-header{padding:24px 20px 20px;border-bottom:1px solid rgba(255,255,255,0.08)}
+.sidebar-brand{display:flex;flex-direction:column;align-items:flex-start;gap:8px}
+.sidebar-logo{width:160px;height:auto;max-height:54px;object-fit:contain;background:transparent;border-radius:4px;padding:7px;
+  /* Convertir logo a blanco y eliminar fondo */
+  filter: brightness(0) invert(1);
+}
+.sidebar-title{color:white}
+.sidebar-title strong{display:block;font-size:13px;font-weight:500;line-height:1.2}
+.sidebar-title span{font-size:10px;color:rgba(255,255,255,0.6);letter-spacing:.8px;text-transform:uppercase}
+.sidebar-nav{flex:1;padding:16px 12px;overflow-y:auto}
+.nav-item{display:flex;align-items:center;gap:12px;padding:12px 14px;border-radius:10px;cursor:pointer;color:rgba(255,255,255,0.72);font-size:14px;font-weight:400;transition:all .2s;margin-bottom:4px}
+.nav-item:hover{background:rgba(255,255,255,0.1);color:white}
+.nav-item.active{background:rgba(255,255,255,0.14);color:white;box-shadow:0 8px 18px rgba(0,0,0,0.14)}
+.nav-item svg{width:18px;height:18px;fill:currentColor;flex-shrink:0}
+.sidebar-footer{padding:16px 20px;border-top:1px solid rgba(255,255,255,0.1)}
+.logout-btn{display:flex;align-items:center;gap:10px;color:rgba(255,255,255,0.6);font-size:13px;font-weight:400;cursor:pointer;transition:color .2s}
+.logout-btn:hover{color:white}
+.logout-btn svg{width:16px;height:16px;fill:currentColor}
+.main-content{margin-left:var(--sidebar-w);padding:28px;min-height:100vh;max-width:1600px}
+.page{display:none}
+.page.active{display:block}
+.page-header{margin-bottom:24px}
+.page-header h2{font-size:24px;font-weight:500;color:var(--blue-dark)}
+.page-header p{font-size:14px;color:var(--gray-500);margin-top:4px}
+
+/* CARDS */
+.card{background:var(--white);border:1px solid rgba(8,36,61,0.06);border-radius:var(--radius);box-shadow:var(--shadow);padding:24px;margin-bottom:20px}
+.card-title{font-size:14px;font-weight:500;color:var(--blue-dark);text-transform:uppercase;letter-spacing:.7px;margin-bottom:18px;padding-bottom:12px;border-bottom:1px solid var(--blue-pale);display:flex;align-items:center;gap:8px}
+.card-title svg{width:16px;height:16px;fill:var(--blue-mid)}
+
+/* FORMS */
+.form-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:16px}
+.form-group{display:flex;flex-direction:column}
+.form-group label{font-size:11px;font-weight:500;color:var(--gray-500);text-transform:uppercase;letter-spacing:.6px;margin-bottom:5px}
+.form-group input,.form-group select{padding:10px 13px;border:1px solid var(--gray-300);border-radius:8px;font-size:14px;color:var(--gray-700);transition:border-color .2s,box-shadow .2s;outline:none;background:white;min-width:0}
+.form-group input:focus,.form-group select:focus{border-color:var(--blue-light)}
+.form-group input[readonly],.form-group select[disabled]{background:var(--gray-100);color:var(--gray-500);cursor:default}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:7px;padding:10px 20px;border:none;border-radius:8px;font-size:14px;font-weight:500;cursor:pointer;transition:all .2s;min-height:40px;text-align:center}
+.btn svg{width:15px;height:15px;fill:currentColor}
+.btn-primary{background:var(--blue-dark);color:white;box-shadow:0 8px 18px rgba(8,36,61,.18)}
+.btn-primary:hover{opacity:.9;transform:translateY(-1px)}
+.btn-success{background:var(--blue-mid);color:white}
+.btn-success:hover{background:var(--blue-dark)}
+.btn-warning{background:#f59e0b;color:white}
+.btn-warning:hover{background:#d97706}
+.btn-danger{background:#ef4444;color:white}
+.btn-danger:hover{background:#dc2626}
+.btn-outline{background:transparent;color:var(--blue-mid);border:1px solid var(--blue-mid)}
+.btn-outline:hover{background:var(--blue-pale)}
+.btn-sm{padding:7px 14px;font-size:12px}
+
+/* TABLE */
+.table-wrap{overflow-x:auto;-webkit-overflow-scrolling:touch;border-radius:10px}
+table{width:100%;border-collapse:collapse;font-size:13px}
+thead tr{background:linear-gradient(90deg,var(--blue-dark),var(--blue-mid))}
+thead th{padding:12px 14px;color:white;font-weight:500;text-align:left;white-space:nowrap;font-size:11px;text-transform:uppercase;letter-spacing:.5px}
+tbody tr{border-bottom:1px solid var(--gray-100);transition:background .15s}
+tbody tr:hover{background:var(--blue-ultra)}
+tbody td{padding:11px 14px;color:var(--gray-700);font-size:13px}
+.badge{display:inline-block;padding:3px 9px;border-radius:20px;font-size:11px;font-weight:400}
+.badge-green{background:var(--green-pale);color:var(--green-dark)}
+.badge-blue{background:var(--blue-pale);color:var(--blue-dark)}
+
+/* PAGINATION */
+.pagination{display:flex;gap:6px;margin-top:16px;justify-content:flex-end;flex-wrap:wrap}
+.page-btn{padding:6px 12px;border:1px solid var(--gray-300);border-radius:6px;background:white;cursor:pointer;font-size:13px;font-weight:400;transition:all .2s;color:var(--gray-700)}
+.page-btn:hover,.page-btn.active{background:var(--blue-mid);border-color:var(--blue-mid);color:white}
+
+/* FILTERS */
+.filters-row{display:flex;gap:12px;flex-wrap:wrap;margin-bottom:16px;align-items:flex-end}
+.filter-group{display:flex;flex-direction:column;gap:4px;flex:1;min-width:150px}
+.filter-group label{font-size:11px;font-weight:500;color:var(--gray-500);text-transform:uppercase;letter-spacing:.5px}
+.filter-group input,.filter-group select{padding:9px 12px;border:1px solid var(--gray-300);border-radius:8px;font-size:13px;outline:none;transition:border-color .2s;min-width:0}
+.filter-group input:focus,.filter-group select:focus{border-color:var(--blue-light)}
+
+/* MODAL */
+.modal-overlay{display:none;position:fixed;inset:0;background:rgba(10,20,40,0.55);z-index:999;align-items:center;justify-content:center;padding:20px}
+.modal-overlay.open{display:flex}
+.modal{background:white;border-radius:16px;width:100%;max-width:820px;max-height:90vh;overflow-y:auto;box-shadow:var(--shadow-lg)}
+.modal-header{padding:20px 24px;border-bottom:2px solid var(--blue-pale);display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;background:white;z-index:1}
+.modal-header h3{font-size:16px;font-weight:500;color:var(--blue-dark)}
+.modal-close{width:32px;height:32px;border-radius:8px;border:none;background:var(--gray-100);cursor:pointer;display:flex;align-items:center;justify-content:center;color:var(--gray-500);font-size:18px;transition:all .2s}
+.modal-close:hover{background:var(--gray-300)}
+.modal-body{padding:24px}
+.modal-footer{padding:16px 24px;border-top:2px solid var(--gray-100);display:flex;gap:10px;justify-content:flex-end}
+
+/* STATS */
+.stats-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:16px;margin-bottom:24px}
+.stat-card{background:white;border:1px solid rgba(8,36,61,0.06);border-radius:12px;padding:18px;box-shadow:var(--shadow);display:grid;grid-template-columns:44px 1fr;align-items:center;gap:14px;min-height:108px}
+.stat-icon{width:44px;height:44px;border-radius:10px;display:flex;align-items:center;justify-content:center;flex-shrink:0;background:var(--blue-dark)}
+.stat-icon svg{width:21px;height:21px;fill:white}
+.stat-icon.green,.stat-icon.blue,.stat-icon.teal,.stat-icon.amber{background:var(--blue-dark)}
+.stat-info{min-width:0}
+.stat-val{font-size:26px;font-weight:500;color:var(--blue-dark);line-height:1.05;letter-spacing:.2px;white-space:nowrap}
+.stat-lbl{font-size:12px;color:var(--gray-500);font-weight:400;margin-top:5px;line-height:1.25}
+
+/* SECTION TITLE */
+.section-label{font-size:12px;font-weight:500;text-transform:uppercase;letter-spacing:1px;color:var(--blue-dark);margin:20px 0 12px;padding:8px 14px;background:var(--blue-ultra);border-left:3px solid var(--blue-dark);border-radius:0 6px 6px 0}
+
+/* ALERT */
+.alert{display:none}
+.toast-stack{position:fixed;right:22px;top:22px;z-index:1200;display:flex;flex-direction:column;gap:10px;width:min(360px,calc(100vw - 32px))}
+.toast{background:white;border:1px solid rgba(8,36,61,.1);border-left:4px solid var(--blue-dark);border-radius:10px;box-shadow:0 18px 38px rgba(8,36,61,.18);color:var(--gray-700);font-size:14px;font-weight:400;line-height:1.4;padding:14px 16px;animation:toastIn .22s ease-out}
+.toast.success{border-left-color:var(--blue-dark)}
+.toast.error{border-left-color:#b42318}
+@keyframes toastIn{from{opacity:0;transform:translateY(-8px)}to{opacity:1;transform:translateY(0)}}
+
+@media (max-width: 1100px){
+  :root{--sidebar-w:220px}
+  .main-content{padding:22px}
+  .form-grid{grid-template-columns:repeat(auto-fit,minmax(180px,1fr))}
+  .stats-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
+}
+
+@media (max-width: 760px){
+  #appShell{padding-bottom:72px}
+  .sidebar{top:auto;bottom:0;width:100%;height:72px;display:block;background:linear-gradient(90deg,#071d33,var(--blue-dark));box-shadow:0 -4px 24px rgba(8,36,61,0.18);overflow:hidden}
+  .sidebar-header,.sidebar-footer{display:none}
+  .sidebar-nav{width:100%;height:72px;padding:8px;display:flex;gap:4px;overflow-x:auto;overflow-y:hidden;align-items:center;scrollbar-width:none}
+  .sidebar-nav::-webkit-scrollbar{display:none}
+  .nav-item{min-width:68px;flex:1;justify-content:center;flex-direction:column;gap:4px;padding:8px 4px;margin:0;border-radius:9px;font-size:10.5px;line-height:1.15;text-align:center;white-space:normal}
+  .nav-item svg{width:19px;height:19px}
+  .main-content{margin-left:0;padding:18px 14px 92px;max-width:none}
+  .page-header{margin-bottom:16px}
+  .page-header h2{font-size:21px}
+  .card{padding:18px 14px;border-radius:10px;margin-bottom:16px}
+  .card-title{font-size:13px;line-height:1.35}
+  .form-grid,.stats-grid{grid-template-columns:1fr;gap:12px}
+  .stats-grid{margin-bottom:16px}
+  .stat-card{padding:16px}
+  .stat-val{font-size:24px}
+  .filters-row{display:grid;grid-template-columns:1fr;gap:10px}
+  .filters-row .btn{width:100%;margin-bottom:0!important}
+  .btn{width:100%;min-height:42px;white-space:normal}
+  .btn-sm{padding:9px 12px}
+  .table-wrap{margin:0 -4px}
+  table{min-width:680px}
+  thead th,tbody td{padding:10px 12px}
+  .modal-overlay{padding:12px;align-items:flex-start}
+  .modal{max-height:calc(100vh - 24px);border-radius:12px}
+  .modal-header,.modal-body,.modal-footer{padding:16px}
+  .modal-footer{flex-direction:column-reverse}
+  .modal-footer .btn{width:100%}
+  .section-label{font-size:11px;line-height:1.35}
+}
+
+@media (max-width: 460px){
+  .login-card{padding:32px 22px;border-radius:16px}
+  .brand-logo{width:190px}
+  .login-logo h1{font-size:20px}
+  .nav-item{min-width:64px;font-size:10px}
+  .main-content{padding-left:10px;padding-right:10px}
+  .page-header h2{font-size:19px}
+  .card{padding:16px 12px}
+  .toast-stack{right:12px;top:12px;width:calc(100vw - 24px)}
+}
+</style>
+</head>
+<body>
+<img id="parkdaleLogoPreload" src="assets/parkdale-logo-crop.png" alt="" style="position:absolute;width:1px;height:1px;opacity:0;pointer-events:none">
+<div id="toastStack" class="toast-stack" aria-live="polite" aria-atomic="true"></div>
+
+<!-- LOGIN -->
+<div id="loginScreen">
+  <div class="login-card">
+    <div class="login-logo">
+      <img class="brand-logo" src="assets/parkdale-logo-crop.png" alt="Parkdale Mills">
+      <h1>Hilos de Yecapixtla</h1>
+      <p>Administrador de Vacaciones</p>
+    </div>
+    <div class="login-form">
+      <label>Usuario</label>
+      <input type="text" id="loginUser" placeholder="Ingresa tu usuario" autocomplete="off">
+      <label>Contraseña</label>
+      <input type="password" id="loginPass" placeholder="Ingresa tu contraseña">
+      <div class="login-error" id="loginError">Credenciales incorrectas. Intenta de nuevo.</div>
+      <button class="login-btn" onclick="doLogin()">
+        <svg style="width:16px;height:16px;fill:white;vertical-align:middle;margin-right:6px" viewBox="0 0 24 24"><path d="M11 7L9.6 8.4l2.6 2.6H2v2h10.2l-2.6 2.6L11 17l5-5-5-5zm9 12h-8v2h8c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2h-8v2h8v14z"/></svg>
+        Iniciar Sesión
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- APP SHELL -->
+<div id="appShell">
+  <aside class="sidebar">
+    <div class="sidebar-header">
+      <div class="sidebar-brand">
+        <img class="sidebar-logo" src="assets/parkdale-logo-crop.png" alt="Parkdale Mills">
+        <div class="sidebar-title">
+          <span>Administrador de Vacaciones</span>
+        </div>
+      </div>
+    </div>
+    <nav class="sidebar-nav">
+      <div class="nav-item active" onclick="showPage('principal')">
+        <svg viewBox="0 0 24 24"><path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/></svg>
+        Principal
+      </div>
+      <div class="nav-item" onclick="showPage('addEmpleado')">
+        <svg viewBox="0 0 24 24"><path d="M15 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm-9-2V7H4v3H1v2h3v3h2v-3h3v-2H6zm9 4c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/></svg>
+        Agregar Empleado
+      </div>
+      <div class="nav-item" onclick="showPage('verEmpleados')">
+        <svg viewBox="0 0 24 24"><path d="M16 11c1.66 0 2.99-1.34 2.99-3S17.66 5 16 5c-1.66 0-3 1.34-3 3s1.34 3 3 3zm-8 0c1.66 0 2.99-1.34 2.99-3S9.66 5 8 5C6.34 5 5 6.34 5 8s1.34 3 3 3zm0 2c-2.33 0-7 1.17-7 3.5V19h14v-2.5c0-2.33-4.67-3.5-7-3.5zm8 0c-.29 0-.62.02-.97.05 1.16.84 1.97 1.97 1.97 3.45V19h6v-2.5c0-2.33-4.67-3.5-7-3.5z"/></svg>
+        Ver Empleados
+      </div>
+      <div class="nav-item" onclick="showPage('generarFormato')">
+        <svg viewBox="0 0 24 24"><path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-2 10h-4v4h-2v-4H7v-2h4V7h2v4h4v2z"/></svg>
+        Generar Formato
+      </div>
+      <div class="nav-item" onclick="showPage('consultarRegistros')">
+        <svg viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z"/></svg>
+        Consultar Registros
+      </div>
+    </nav>
+    <div class="sidebar-footer">
+      <div class="logout-btn" onclick="doLogout()">
+        <svg viewBox="0 0 24 24"><path d="M17 7l-1.41 1.41L18.17 11H8v2h10.17l-2.58 2.58L17 17l5-5zM4 5h8V3H4c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h8v-2H4V5z"/></svg>
+        Cerrar Sesión
+      </div>
+    </div>
+  </aside>
+
+  <main class="main-content">
+
+    <!-- PRINCIPAL -->
+    <div id="page-principal" class="page active">
+      <div class="page-header">
+        <h2>Panel Principal</h2>
+        <p>Registros de vacaciones del mes actual</p>
+      </div>
+      <div class="stats-grid" id="statsGrid"></div>
+      <div class="card">
+        <div class="card-title">
+          <svg viewBox="0 0 24 24"><path d="M17 12h-5v5h5v-5zM16 1v2H8V1H6v2H5c-1.11 0-1.99.9-1.99 2L3 19c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2h-1V1h-2zm3 18H5V8h14v11z"/></svg>
+          Vacaciones del Mes Actual
+        </div>
+        <div class="table-wrap">
+          <table id="tablePrincipal">
+            <thead><tr><th>#Emp</th><th>Empleado</th><th>Departamento</th><th>Fecha Inicio</th><th>Fecha Fin</th><th>Días Tomados</th><th>Acciones</th></tr></thead>
+            <tbody id="tbodyPrincipal"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- AGREGAR EMPLEADO -->
+    <div id="page-addEmpleado" class="page">
+      <div class="page-header">
+        <h2>Agregar Empleado</h2>
+        <p>Registra un nuevo empleado en el sistema</p>
+      </div>
+      <div class="card">
+        <div class="card-title">
+          <svg viewBox="0 0 24 24"><path d="M15 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm-9-2V7H4v3H1v2h3v3h2v-3h3v-2H6zm9 4c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/></svg>
+          Datos del Empleado
+        </div>
+        <div class="alert alert-error" id="addEmpAlert"></div>
+        <div class="alert alert-success" id="addEmpSuccess"></div>
+        <form onsubmit="return false">
+          <div class="form-grid">
+            <div class="form-group">
+              <label>N° de Empleado *</label>
+              <input type="number" id="ae_num" placeholder="Ej: 1001" min="1">
+            </div>
+            <div class="form-group">
+              <label>Nombre del Empleado *</label>
+              <input type="text" id="ae_nombre" placeholder="Nombre completo">
+            </div>
+            <div class="form-group">
+              <label>Departamento *</label>
+              <select id="ae_depto">
+                <option value="">Selecciona...</option>
+                <option>Open End</option>
+                <option>Cardado</option>
+                <option>Estirado</option>
+                <option>Apertura</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label>Turno *</label>
+              <select id="ae_turno">
+                <option value="">Selecciona...</option>
+                <option>A</option><option>B</option><option>C</option><option>D</option>
+                <option>L-V</option><option>Azul Especial</option><option>Rojo Especial</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label>Fecha de Ingreso *</label>
+              <input type="date" id="ae_ingreso">
+            </div>
+          </div>
+          <div style="margin-top:20px;display:flex;gap:12px">
+            <button class="btn btn-primary" onclick="addEmpleado()">
+              <svg viewBox="0 0 24 24"><path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"/></svg>
+              Guardar Empleado
+            </button>
+            <button class="btn btn-outline" onclick="clearAddEmp()">
+              <svg viewBox="0 0 24 24"><path d="M12 5V1L7 6l5 5V7c3.31 0 6 2.69 6 6s-2.69 6-6 6-6-2.69-6-6H4c0 4.42 3.58 8 8 8s8-3.58 8-8-3.58-8-8-8z"/></svg>
+              Limpiar
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <!-- VER EMPLEADOS -->
+    <div id="page-verEmpleados" class="page">
+      <div class="page-header">
+        <h2>Ver Empleados</h2>
+        <p>Listado completo de empleados registrados</p>
+      </div>
+      <div class="card">
+        <div class="card-title">
+          <svg viewBox="0 0 24 24"><path d="M16 11c1.66 0 2.99-1.34 2.99-3S17.66 5 16 5c-1.66 0-3 1.34-3 3s1.34 3 3 3zm-8 0c1.66 0 2.99-1.34 2.99-3S9.66 5 8 5C6.34 5 5 6.34 5 8s1.34 3 3 3zm0 2c-2.33 0-7 1.17-7 3.5V19h14v-2.5c0-2.33-4.67-3.5-7-3.5zm8 0c-.29 0-.62.02-.97.05 1.16.84 1.97 1.97 1.97 3.45V19h6v-2.5c0-2.33-4.67-3.5-7-3.5z"/></svg>
+          Lista de Empleados
+        </div>
+        <div class="table-wrap">
+          <table id="tableEmpleados">
+            <thead><tr><th>N° Emp</th><th>Nombre</th><th>Departamento</th><th>Turno</th><th>Fecha Ingreso</th><th>Acciones</th></tr></thead>
+            <tbody id="tbodyEmpleados"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- GENERAR FORMATO -->
+    <div id="page-generarFormato" class="page">
+      <div class="page-header">
+        <h2>Generar Formato de Vacaciones</h2>
+        <p>Crea un nuevo registro de solicitud de vacaciones</p>
+      </div>
+      <div class="card">
+        <div class="alert alert-error" id="gfAlert"></div>
+        <div class="alert alert-success" id="gfSuccess"></div>
+
+        <div class="section-label">Sección 1 — Datos del Empleado</div>
+        <div class="form-grid">
+          <div class="form-group">
+            <label>Folio</label>
+            <input type="text" id="gf_folio" readonly>
+          </div>
+          <div class="form-group">
+            <label>Empleado *</label>
+            <select id="gf_empleado" onchange="fillEmpleadoData()">
+              <option value="">Selecciona empleado...</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>N° de Empleado</label>
+            <input type="text" id="gf_num" readonly>
+          </div>
+          <div class="form-group">
+            <label>Departamento</label>
+            <input type="text" id="gf_depto" readonly>
+          </div>
+          <div class="form-group">
+            <label>Turno</label>
+            <input type="text" id="gf_turno" readonly>
+          </div>
+          <div class="form-group">
+            <label>Fecha de Ingreso</label>
+            <input type="text" id="gf_ingreso" readonly>
+          </div>
+        </div>
+
+        <div class="section-label">Sección 2 — Antigüedad</div>
+        <div class="form-grid">
+          <div class="form-group">
+            <label>Antigüedad</label>
+            <input type="text" id="gf_antiguedad" readonly>
+          </div>
+          <div class="form-group">
+            <label>Días de Vacaciones que Aplican</label>
+            <input type="text" id="gf_dias_aplican" readonly>
+          </div>
+        </div>
+
+        <div class="section-label">Sección 3 — Vacaciones</div>
+        <div class="form-grid">
+          <div class="form-group">
+            <label>Fecha Inicio *</label>
+            <input type="date" id="gf_fecha_inicio" oninput="calcVacaciones()">
+          </div>
+          <div class="form-group">
+            <label>Fecha Fin *</label>
+            <input type="date" id="gf_fecha_fin" oninput="calcVacaciones()">
+          </div>
+          <div class="form-group">
+            <label>Días Disponibles</label>
+            <input type="text" id="gf_dias_disp" readonly>
+          </div>
+          <div class="form-group">
+            <label>Días Tomados (este registro)</label>
+            <input type="text" id="gf_dias_tomados" readonly>
+          </div>
+          <div class="form-group">
+            <label>Fecha de Regreso</label>
+            <input type="text" id="gf_fecha_regreso" readonly>
+          </div>
+          <div class="form-group">
+            <label>Días Pendientes por Disfrutar</label>
+            <input type="text" id="gf_dias_pendientes" readonly>
+          </div>
+        </div>
+
+        <div style="margin-top:20px;display:flex;gap:12px;flex-wrap:wrap">
+          <button class="btn btn-primary" onclick="guardarFormato()">
+            <svg viewBox="0 0 24 24"><path d="M17 3H5c-1.11 0-2 .9-2 2v14c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2V7l-4-4zm-5 16c-1.66 0-3-1.34-3-3s1.34-3 3-3 3 1.34 3 3-1.34 3-3 3zm3-10H5V5h10v4z"/></svg>
+            Guardar Formato
+          </button>
+          <button class="btn btn-outline" onclick="clearFormato()">
+            <svg viewBox="0 0 24 24"><path d="M12 5V1L7 6l5 5V7c3.31 0 6 2.69 6 6s-2.69 6-6 6-6-2.69-6-6H4c0 4.42 3.58 8 8 8s8-3.58 8-8-3.58-8-8-8z"/></svg>
+            Limpiar
+          </button>
+          <button class="btn btn-success" id="btnDescargar" onclick="descargarPDF(null)" style="display:none">
+            <svg viewBox="0 0 24 24"><path d="M19 9h-4V3H9v6H5l7 7 7-7zM5 18v2h14v-2H5z"/></svg>
+            Descargar PDF
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- CONSULTAR REGISTROS -->
+    <div id="page-consultarRegistros" class="page">
+      <div class="page-header">
+        <h2>Consultar Registros</h2>
+        <p>Historial completo de solicitudes de vacaciones</p>
+      </div>
+      <div class="card">
+        <div class="card-title">
+          <svg viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z"/></svg>
+          Filtros de Búsqueda
+        </div>
+        <div class="filters-row">
+          <div class="filter-group">
+            <label>N° Empleado</label>
+            <input type="text" id="f_num" oninput="filterRegistros()" placeholder="Buscar...">
+          </div>
+          <div class="filter-group">
+            <label>Empleado</label>
+            <input type="text" id="f_nombre" oninput="filterRegistros()" placeholder="Buscar...">
+          </div>
+          <div class="filter-group">
+            <label>Departamento</label>
+            <select id="f_depto" onchange="filterRegistros()">
+              <option value="">Todos</option>
+              <option>Open End</option><option>Cardado</option><option>Estirado</option><option>Apertura</option>
+            </select>
+          </div>
+          <div class="filter-group">
+            <label>Año</label>
+            <input type="number" id="f_anio" oninput="filterRegistros()" placeholder="Ej: 2024" min="2000" max="2099">
+          </div>
+          <button class="btn btn-outline btn-sm" onclick="clearFilters()" style="margin-bottom:1px">
+            <svg viewBox="0 0 24 24"><path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+            Limpiar
+          </button>
+        </div>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>Folio</th><th>N° Emp</th><th>Empleado</th><th>Departamento</th><th>Fecha Ingreso</th><th>Fecha Inicio</th><th>Días</th><th>Acciones</th></tr></thead>
+            <tbody id="tbodyConsulta"></tbody>
+          </table>
+        </div>
+        <div class="pagination" id="paginacion"></div>
+      </div>
+    </div>
+
+  </main>
+</div>
+
+<!-- MODAL EDITAR EMPLEADO -->
+<div class="modal-overlay" id="modalEditEmp">
+  <div class="modal" style="max-width:600px">
+    <div class="modal-header">
+      <h3>Editar Empleado</h3>
+      <button class="modal-close" onclick="closeModal('modalEditEmp')">×</button>
+    </div>
+    <div class="modal-body">
+      <input type="hidden" id="edit_idx">
+      <div class="form-grid">
+        <div class="form-group">
+          <label>N° de Empleado *</label>
+          <input type="number" id="edit_num">
+        </div>
+        <div class="form-group">
+          <label>Nombre *</label>
+          <input type="text" id="edit_nombre">
+        </div>
+        <div class="form-group">
+          <label>Departamento *</label>
+          <select id="edit_depto">
+            <option>Open End</option><option>Cardado</option><option>Estirado</option><option>Apertura</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Turno *</label>
+          <select id="edit_turno">
+            <option>A</option><option>B</option><option>C</option><option>D</option>
+            <option>L-V</option><option>Azul Especial</option><option>Rojo Especial</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Fecha de Ingreso *</label>
+          <input type="date" id="edit_ingreso">
+        </div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-danger btn-sm" onclick="eliminarEmpleado()">
+        <svg viewBox="0 0 24 24"><path d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z"/></svg>
+        Eliminar Empleado
+      </button>
+      <button class="btn btn-primary btn-sm" onclick="actualizarEmpleado()">
+        <svg viewBox="0 0 24 24"><path d="M17 3H5c-1.11 0-2 .9-2 2v14c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2V7l-4-4zm-5 16c-1.66 0-3-1.34-3-3s1.34-3 3-3 3 1.34 3 3-1.34 3-3 3zm3-10H5V5h10v4z"/></svg>
+        Actualizar
+      </button>
+      <button class="btn btn-outline btn-sm" onclick="closeModal('modalEditEmp')">Cancelar</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL VER FORMATO -->
+<div class="modal-overlay" id="modalVerFormato">
+  <div class="modal" style="max-width:860px">
+    <div class="modal-header">
+      <h3>Detalle de Solicitud de Vacaciones</h3>
+      <button class="modal-close" onclick="closeModal('modalVerFormato')">×</button>
+    </div>
+    <div class="modal-body" id="modalVerBody"></div>
+    <div class="modal-footer">
+      <button class="btn btn-success" id="btnModalPDF" onclick="">
+        <svg viewBox="0 0 24 24"><path d="M19 9h-4V3H9v6H5l7 7 7-7zM5 18v2h14v-2H5z"/></svg>
+        Descargar PDF
+      </button>
+      <button class="btn btn-outline btn-sm" onclick="closeModal('modalVerFormato')">Cerrar</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ DATA â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+let empleados = JSON.parse(localStorage.getItem('pm_empleados')||'[]');
+let registros = JSON.parse(localStorage.getItem('pm_registros')||'[]');
+let folioCounter = parseInt(localStorage.getItem('pm_folio')||'1');
+
+function saveData(){
+  localStorage.setItem('pm_empleados', JSON.stringify(empleados));
+  localStorage.setItem('pm_registros', JSON.stringify(registros));
+  localStorage.setItem('pm_folio', String(folioCounter));
+}
+
+// â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ AUTH â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+function doLogin(){
+  const u=document.getElementById('loginUser').value.trim();
+  const p=document.getElementById('loginPass').value.trim();
+  if(u==='isaifonseca' && p==='fonseca01'){
+    document.getElementById('loginScreen').style.display='none';
+    document.getElementById('appShell').style.display='block';
+    initApp();
+  } else {
+    showToast('Credenciales incorrectas. Intenta de nuevo.','error');
+  }
+}
+document.getElementById('loginUser').addEventListener('keydown',e=>{if(e.key==='Enter') doLogin()});
+document.getElementById('loginPass').addEventListener('keydown',e=>{if(e.key==='Enter') doLogin()});
+function doLogout(){
+  document.getElementById('loginScreen').style.display='flex';
+  document.getElementById('appShell').style.display='none';
+  document.getElementById('loginUser').value='';
+  document.getElementById('loginPass').value='';
+}
+
+// â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ NAVIGATION â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+function showPage(id){
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(n=>n.classList.remove('active'));
+  document.getElementById('page-'+id).classList.add('active');
+  event.currentTarget.classList.add('active');
+  if(id==='verEmpleados') renderEmpleados();
+  if(id==='generarFormato'){ prepFormato(); }
+  if(id==='consultarRegistros'){ currentPage=1; filterRegistros(); }
+  if(id==='principal') renderPrincipal();
+}
+function closeModal(id){ document.getElementById(id).classList.remove('open'); }
+function openModal(id){ document.getElementById(id).classList.add('open'); }
+function showToast(message,type='success'){
+  const stack=document.getElementById('toastStack');
+  if(!stack) return;
+  const toast=document.createElement('div');
+  toast.className='toast '+type;
+  toast.textContent=message;
+  stack.appendChild(toast);
+  setTimeout(()=>{ toast.style.opacity='0'; toast.style.transform='translateY(-8px)'; },3600);
+  setTimeout(()=>toast.remove(),4000);
+}
+
+// â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ INIT â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+function initApp(){
+  renderStats();
+  renderPrincipal();
+  prepFormato();
+}
+
+// â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ STATS â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+function renderStats(){
+  const now=new Date();
+  const mes=now.getMonth(), anio=now.getFullYear();
+  const mesReg=registros.filter(r=>{const d=new Date(r.fecha_inicio+'T12:00:00');return d.getMonth()===mes&&d.getFullYear()===anio;});
+  document.getElementById('statsGrid').innerHTML=`
+    <div class="stat-card"><div class="stat-icon blue"><svg viewBox="0 0 24 24"><path d="M16 11c1.66 0 2.99-1.34 2.99-3S17.66 5 16 5c-1.66 0-3 1.34-3 3s1.34 3 3 3zm-8 0c1.66 0 2.99-1.34 2.99-3S9.66 5 8 5C6.34 5 5 6.34 5 8s1.34 3 3 3zm0 2c-2.33 0-7 1.17-7 3.5V19h14v-2.5c0-2.33-4.67-3.5-7-3.5zm8 0c-.29 0-.62.02-.97.05 1.16.84 1.97 1.97 1.97 3.45V19h6v-2.5c0-2.33-4.67-3.5-7-3.5z"/></svg></div><div class="stat-info"><div class="stat-val">${empleados.length}</div><div class="stat-lbl">Empleados</div></div></div>
+    <div class="stat-card"><div class="stat-icon green"><svg viewBox="0 0 24 24"><path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-2 10h-4v4h-2v-4H7v-2h4V7h2v4h4v2z"/></svg></div><div class="stat-info"><div class="stat-val">${registros.length}</div><div class="stat-lbl">Registros total</div></div></div>
+    <div class="stat-card"><div class="stat-icon teal"><svg viewBox="0 0 24 24"><path d="M17 12h-5v5h5v-5zM16 1v2H8V1H6v2H5c-1.11 0-1.99.9-1.99 2L3 19c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2h-1V1h-2zm3 18H5V8h14v11z"/></svg></div><div class="stat-info"><div class="stat-val">${mesReg.length}</div><div class="stat-lbl">Vacaciones del mes</div></div></div>
+    <div class="stat-card"><div class="stat-icon amber"><svg viewBox="0 0 24 24"><path d="M11.99 2C6.47 2 2 6.48 2 12s4.47 10 9.99 10C17.52 22 22 17.52 22 12S17.52 2 11.99 2zM12 20c-4.42 0-8-3.58-8-8s3.58-8 8-8 8 3.58 8 8-3.58 8-8 8zm.5-13H11v6l5.25 3.15.75-1.23-4.5-2.67V7z"/></svg></div><div class="stat-info"><div class="stat-val">${String(folioCounter-1).padStart(7,'0')}</div><div class="stat-lbl">Último folio</div></div></div>
+  `;
+}
+
+// â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ PRINCIPAL â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+function renderPrincipal(){
+  renderStats();
+  const now=new Date();
+  const mes=now.getMonth(), anio=now.getFullYear();
+  const mesReg=registros.filter(r=>{
+    const d=new Date(r.fecha_inicio+'T12:00:00');
+    return d.getMonth()===mes && d.getFullYear()===anio;
+  });
+  const tbody=document.getElementById('tbodyPrincipal');
+  tbody.innerHTML='';
+  if(!mesReg.length){
+    tbody.innerHTML='<tr><td colspan="7" style="text-align:center;padding:24px;color:var(--gray-500)">No hay registros para el mes actual.</td></tr>';
+    return;
+  }
+  mesReg.forEach(r=>{
+    const tr=document.createElement('tr');
+    tr.innerHTML=`<td>${r.num_emp}</td><td>${r.empleado}</td><td><span class="badge badge-blue">${r.departamento}</span></td><td>${fmtDate(r.fecha_inicio)}</td><td>${fmtDate(r.fecha_fin)}</td><td><span class="badge badge-green">${r.dias_tomados} días</span></td><td><button class="btn btn-outline btn-sm" onclick="verFormato('${r.folio}')"><svg viewBox="0 0 24 24" style="width:13px;height:13px;fill:currentColor"><path d="M12 4.5C7 4.5 2.73 7.61 1 12c1.73 4.39 6 7.5 11 7.5s9.27-3.11 11-7.5c-1.73-4.39-6-7.5-11-7.5zM12 17c-2.76 0-5-2.24-5-5s2.24-5 5-5 5 2.24 5 5-2.24 5-5 5zm0-8c-1.66 0-3 1.34-3 3s1.34 3 3 3 3-1.34 3-3-1.34-3-3-3z"/></svg> Ver</button></td>`;
+    tbody.appendChild(tr);
+  });
+}
+
+// â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ EMPLEADOS â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+function addEmpleado(){
+  const num=document.getElementById('ae_num').value.trim();
+  const nombre=document.getElementById('ae_nombre').value.trim();
+  const depto=document.getElementById('ae_depto').value;
+  const turno=document.getElementById('ae_turno').value;
+  const ingreso=document.getElementById('ae_ingreso').value;
+  if(!num||!nombre||!depto||!turno||!ingreso){
+    showToast('Por favor completa todos los campos.','error'); return;
+  }
+  if(empleados.some(e=>String(e.num)===String(num))){
+    showToast('El número de empleado ya existe.','error'); return;
+  }
+  empleados.push({num,nombre,departamento:depto,turno,fecha_ingreso:ingreso});
+  saveData();
+  showToast('Empleado registrado correctamente.','success');
+  clearAddEmp();
+}
+function clearAddEmp(){
+  ['ae_num','ae_nombre','ae_ingreso'].forEach(id=>document.getElementById(id).value='');
+  document.getElementById('ae_depto').value='';
+  document.getElementById('ae_turno').value='';
+}
+function renderEmpleados(){
+  const tbody=document.getElementById('tbodyEmpleados');
+  tbody.innerHTML='';
+  if(!empleados.length){
+    tbody.innerHTML='<tr><td colspan="6" style="text-align:center;padding:24px;color:var(--gray-500)">No hay empleados registrados.</td></tr>';
+    return;
+  }
+  empleados.forEach((e,i)=>{
+    const tr=document.createElement('tr');
+    tr.innerHTML=`<td><strong>${e.num}</strong></td><td>${e.nombre}</td><td><span class="badge badge-blue">${e.departamento}</span></td><td><span class="badge badge-green">${e.turno}</span></td><td>${fmtDate(e.fecha_ingreso)}</td><td><button class="btn btn-warning btn-sm" onclick="openEditEmp(${i})"><svg viewBox="0 0 24 24" style="width:13px;height:13px;fill:currentColor"><path d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04c.39-.39.39-1.02 0-1.41l-2.34-2.34c-.39-.39-1.02-.39-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z"/></svg> Editar</button></td>`;
+    tbody.appendChild(tr);
+  });
+}
+function openEditEmp(i){
+  const e=empleados[i];
+  document.getElementById('edit_idx').value=i;
+  document.getElementById('edit_num').value=e.num;
+  document.getElementById('edit_nombre').value=e.nombre;
+  document.getElementById('edit_depto').value=e.departamento;
+  document.getElementById('edit_turno').value=e.turno;
+  document.getElementById('edit_ingreso').value=e.fecha_ingreso;
+  openModal('modalEditEmp');
+}
+function actualizarEmpleado(){
+  const i=parseInt(document.getElementById('edit_idx').value);
+  const num=document.getElementById('edit_num').value.trim();
+  const nombre=document.getElementById('edit_nombre').value.trim();
+  const depto=document.getElementById('edit_depto').value;
+  const turno=document.getElementById('edit_turno').value;
+  const ingreso=document.getElementById('edit_ingreso').value;
+  if(!num||!nombre||!ingreso){showToast('Por favor completa todos los campos.','error');return;}
+  if(empleados.some((e,ei)=>String(e.num)===String(num)&&ei!==i)){showToast('El número de empleado ya existe.','error');return;}
+  empleados[i]={num,nombre,departamento:depto,turno,fecha_ingreso:ingreso};
+  saveData();
+  closeModal('modalEditEmp');
+  renderEmpleados();
+  showToast('Empleado actualizado correctamente.','success');
+}
+function eliminarEmpleado(){
+  const i=parseInt(document.getElementById('edit_idx').value);
+  if(!confirm('¿Estás seguro de eliminar este empleado?')) return;
+  empleados.splice(i,1);
+  saveData();
+  closeModal('modalEditEmp');
+  renderEmpleados();
+}
+
+// â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ GENERAR FORMATO â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+function prepFormato(){
+  const sel=document.getElementById('gf_empleado');
+  sel.innerHTML='<option value="">Selecciona empleado...</option>';
+  empleados.forEach(e=>{ const o=document.createElement('option'); o.value=e.num; o.textContent=`${e.nombre}`; sel.appendChild(o); });
+  document.getElementById('gf_folio').value=String(folioCounter).padStart(7,'0');
+  clearFormatoFields();
+}
+function clearFormatoFields(){
+  ['gf_num','gf_depto','gf_turno','gf_ingreso','gf_antiguedad','gf_dias_aplican',
+   'gf_fecha_inicio','gf_fecha_fin','gf_dias_disp','gf_dias_tomados','gf_fecha_regreso','gf_dias_pendientes'
+  ].forEach(id=>{const el=document.getElementById(id); if(el) el.value='';});
+  document.getElementById('btnDescargar').style.display='none';
+}
+function clearFormato(){
+  document.getElementById('gf_empleado').value='';
+  clearFormatoFields();
+  document.getElementById('gf_folio').value=String(folioCounter).padStart(7,'0');
+  document.getElementById('gfAlert').classList.remove('show');
+  document.getElementById('gfSuccess').classList.remove('show');
+}
+function fillEmpleadoData(){
+  const num=document.getElementById('gf_empleado').value;
+  if(!num){ clearFormatoFields(); document.getElementById('gf_folio').value=String(folioCounter).padStart(7,'0'); return; }
+  const e=empleados.find(x=>String(x.num)===String(num));
+  if(!e) return;
+  document.getElementById('gf_num').value=e.num;
+  document.getElementById('gf_depto').value=e.departamento;
+  document.getElementById('gf_turno').value=e.turno;
+  document.getElementById('gf_ingreso').value=fmtDate(e.fecha_ingreso);
+  const {anios,meses,texto}=calcAntiguedad(e.fecha_ingreso);
+  document.getElementById('gf_antiguedad').value=texto;
+  const diasAplican=calcDiasVacaciones(anios,meses);
+  document.getElementById('gf_dias_aplican').value=diasAplican+' días';
+  // dias disponibles = dias aplican - acumulado tomado
+  const tomadoAcum=calcTomadosAcum(e.num);
+  const disponibles=diasAplican - tomadoAcum;
+  document.getElementById('gf_dias_disp').value=disponibles+' días';
+  calcVacaciones();
+}
+function calcAntiguedad(fechaIngreso){
+  const hoy=new Date();
+  const ing=new Date(fechaIngreso+'T12:00:00');
+  let anios=hoy.getFullYear()-ing.getFullYear();
+  let meses=hoy.getMonth()-ing.getMonth();
+  if(meses<0){anios--;meses+=12;}
+  if(hoy.getDate()<ing.getDate()) meses--;
+  if(meses<0){anios--;meses+=12;}
+  const texto=anios>0?(meses>0?`${anios} año(s) y ${meses} mes(es)`:`${anios} año(s)`):meses>0?`${meses} mes(es)`:'Menos de 1 mes';
+  return {anios,meses,texto};
+}
+function calcDiasVacaciones(anios,meses){
+  if(anios<1) return 0;
+  if(anios===1) return 12;
+  if(anios===2) return 14;
+  if(anios===3) return 16;
+  if(anios===4) return 18;
+  if(anios===5) return 20;
+  if(anios>=6&&anios<=10) return 22;
+  if(anios>=11&&anios<=15) return 24;
+  if(anios>=16&&anios<=20) return 26;
+  if(anios>=21&&anios<=25) return 28;
+  if(anios>=26&&anios<=30) return 30;
+  if(anios>=31&&anios<=36) return 32;
+  return 32;
+}
+function calcTomadosAcum(numEmp){
+  return registros.filter(r=>String(r.num_emp)===String(numEmp)).reduce((s,r)=>s+(r.dias_tomados||0),0);
+}
+function countWeekdays(start, end){
+  let count=0;
+  const s=new Date(start+'T12:00:00');
+  const e=new Date(end+'T12:00:00');
+  let cur=new Date(s);
+  while(cur<=e){
+    const d=cur.getDay();
+    if(d!==0&&d!==6) count++;
+    cur.setDate(cur.getDate()+1);
+  }
+  return count;
+}
+function nextWeekday(end){
+  const e=new Date(end+'T12:00:00');
+  e.setDate(e.getDate()+1);
+  while(e.getDay()===0||e.getDay()===6) e.setDate(e.getDate()+1);
+  return e.toISOString().split('T')[0];
+}
+function calcVacaciones(){
+  const fi=document.getElementById('gf_fecha_inicio').value;
+  const ff=document.getElementById('gf_fecha_fin').value;
+  const dispStr=document.getElementById('gf_dias_disp').value;
+  if(!fi||!ff) return;
+  if(fi>ff){ document.getElementById('gf_dias_tomados').value='Fecha fin inválida'; return; }
+  const tomados=countWeekdays(fi,ff);
+  document.getElementById('gf_dias_tomados').value=tomados+' días';
+  const regreso=nextWeekday(ff);
+  document.getElementById('gf_fecha_regreso').value=fmtDate(regreso);
+  if(dispStr){
+    const disp=parseInt(dispStr)||0;
+    const pendientes=disp-tomados;
+    document.getElementById('gf_dias_pendientes').value=pendientes+' días';
+  }
+}
+function guardarFormato(){
+  const numEmp=document.getElementById('gf_empleado').value;
+  const fi=document.getElementById('gf_fecha_inicio').value;
+  const ff=document.getElementById('gf_fecha_fin').value;
+  if(!numEmp){ showToast('Selecciona un empleado.','error'); return; }
+  if(!fi||!ff){ showToast('Completa las fechas de vacaciones.','error'); return; }
+  const dispStr=document.getElementById('gf_dias_disp').value;
+  const disp=parseInt(dispStr)||0;
+  if(disp<=0){ showToast('Este empleado no cuenta con días disponibles de vacaciones.','error'); return; }
+  const tomados=countWeekdays(fi,ff);
+  if(tomados>disp){ showToast(`El número de días solicitados (${tomados}) supera los días disponibles (${disp}).`,'error'); return; }
+  const e=empleados.find(x=>String(x.num)===String(numEmp));
+  const folio=String(folioCounter).padStart(7,'0');
+  const reg={
+    folio, num_emp:e.num, empleado:e.nombre, departamento:e.departamento, turno:e.turno,
+    fecha_ingreso:e.fecha_ingreso, antiguedad:document.getElementById('gf_antiguedad').value,
+    dias_aplican:document.getElementById('gf_dias_aplican').value,
+    fecha_inicio:fi, fecha_fin:ff, dias_disponibles:disp, dias_tomados:tomados,
+    fecha_regreso:nextWeekday(ff), dias_pendientes:disp-tomados
+  };
+  registros.push(reg);
+  folioCounter++;
+  saveData();
+  showToast(`Formato guardado con folio ${folio}.`,'success');
+  document.getElementById('btnDescargar').style.display='inline-flex';
+  document.getElementById('btnDescargar').onclick=()=>descargarPDF(reg);
+  renderStats();
+}
+function fmtDate(d){
+  if(!d) return '';
+  const p=d.split('-');
+  if(p.length!==3) return d;
+  return `${p[2]}/${p[1]}/${p[0]}`;
+}
+
+// â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ CONSULTAR â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+let currentPage=1;
+const PER_PAGE=10;
+let filteredReg=[];
+function filterRegistros(){
+  const num=document.getElementById('f_num').value.trim().toLowerCase();
+  const nombre=document.getElementById('f_nombre').value.trim().toLowerCase();
+  const depto=document.getElementById('f_depto').value;
+  const anio=document.getElementById('f_anio').value.trim();
+  filteredReg=registros.filter(r=>{
+    if(num && !String(r.num_emp).toLowerCase().includes(num)) return false;
+    if(nombre && !r.empleado.toLowerCase().includes(nombre)) return false;
+    if(depto && r.departamento!==depto) return false;
+    if(anio && !r.fecha_inicio.startsWith(anio)) return false;
+    return true;
+  });
+  currentPage=1;
+  renderConsulta();
+}
+function clearFilters(){
+  ['f_num','f_nombre','f_anio'].forEach(id=>document.getElementById(id).value='');
+  document.getElementById('f_depto').value='';
+  filterRegistros();
+}
+function renderConsulta(){
+  const tbody=document.getElementById('tbodyConsulta');
+  tbody.innerHTML='';
+  if(!filteredReg.length){
+    tbody.innerHTML='<tr><td colspan="8" style="text-align:center;padding:24px;color:var(--gray-500)">No se encontraron registros.</td></tr>';
+    document.getElementById('paginacion').innerHTML='';
+    return;
+  }
+  const start=(currentPage-1)*PER_PAGE, end=Math.min(start+PER_PAGE,filteredReg.length);
+  filteredReg.slice(start,end).forEach(r=>{
+    const tr=document.createElement('tr');
+    tr.innerHTML=`<td><strong>${r.folio}</strong></td><td>${r.num_emp}</td><td>${r.empleado}</td><td><span class="badge badge-blue">${r.departamento}</span></td><td>${fmtDate(r.fecha_ingreso)}</td><td>${fmtDate(r.fecha_inicio)}</td><td><span class="badge badge-green">${r.dias_tomados} días</span></td><td><button class="btn btn-outline btn-sm" onclick="verFormato('${r.folio}')"><svg viewBox="0 0 24 24" style="width:13px;height:13px;fill:currentColor"><path d="M12 4.5C7 4.5 2.73 7.61 1 12c1.73 4.39 6 7.5 11 7.5s9.27-3.11 11-7.5c-1.73-4.39-6-7.5-11-7.5zM12 17c-2.76 0-5-2.24-5-5s2.24-5 5-5 5 2.24 5 5-2.24 5-5 5zm0-8c-1.66 0-3 1.34-3 3s1.34 3 3 3 3-1.34 3-3-1.34-3-3-3z"/></svg> Consultar</button></td>`;
+    tbody.appendChild(tr);
+  });
+  renderPaginacion(filteredReg.length);
+}
+function renderPaginacion(total){
+  const pages=Math.ceil(total/PER_PAGE);
+  const wrap=document.getElementById('paginacion');
+  wrap.innerHTML='';
+  for(let i=1;i<=pages;i++){
+    const btn=document.createElement('button');
+    btn.className='page-btn'+(i===currentPage?' active':'');
+    btn.textContent=i;
+    btn.onclick=(()=>{const p=i;return()=>{currentPage=p;renderConsulta();}})();
+    wrap.appendChild(btn);
+  }
+}
+function verFormato(folio){
+  const r=registros.find(x=>x.folio===folio);
+  if(!r) return;
+  const html=`
+    <div class="section-label">Datos del Empleado</div>
+    <div class="form-grid">
+      ${rf('Folio',r.folio)}${rf('Empleado',r.empleado)}${rf('N° Empleado',r.num_emp)}
+      ${rf('Departamento',r.departamento)}${rf('Turno',r.turno)}${rf('Fecha Ingreso',fmtDate(r.fecha_ingreso))}
+    </div>
+    <div class="section-label">Antigüedad</div>
+    <div class="form-grid">
+      ${rf('Antigüedad',r.antiguedad)}${rf('Días que Aplican',r.dias_aplican)}
+    </div>
+    <div class="section-label">Vacaciones</div>
+    <div class="form-grid">
+      ${rf('Fecha Inicio',fmtDate(r.fecha_inicio))}${rf('Fecha Fin',fmtDate(r.fecha_fin))}
+      ${rf('Días Disponibles',r.dias_disponibles+' días')}${rf('Días Tomados',r.dias_tomados+' días')}
+      ${rf('Fecha de Regreso',fmtDate(r.fecha_regreso))}${rf('Días Pendientes',r.dias_pendientes+' días')}
+    </div>
+  `;
+  document.getElementById('modalVerBody').innerHTML=html;
+  document.getElementById('btnModalPDF').onclick=()=>descargarPDF(r);
+  openModal('modalVerFormato');
+}
+function rf(label,val){
+  return `<div class="form-group"><label>${label}</label><input type="text" value="${val||''}" readonly></div>`;
+}
+
+// â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ PDF â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+function descargarPDF(reg){
+  try {
+    // Verificar que jsPDF esté disponible
+    if(typeof window.jspdf === 'undefined') {
+      showToast('Error: Librería PDF no cargada. Recarga la página.','error');
+      return;
+    }
+    if(!reg){
+      const folio=document.getElementById('gf_folio').value;
+      reg=registros.find(r=>r.folio===folio);
+      if(!reg){ showToast('Primero guarda el formato.','error'); return; }
+    }
+    const { jsPDF } = window.jspdf;
+    const doc = new jsPDF({orientation:'portrait',unit:'mm',format:'letter'});
+    const W = 215.9, M = 18;
+    const navy = [8,36,61];
+    const navy2 = [18,58,93];
+    const softBlue = [246,248,251];
+    
+    // Header background
+    doc.setFillColor(...navy);
+    doc.rect(0,0,W,42,'F');
+    doc.setFillColor(...navy2);
+    doc.rect(0,38,W,5,'F');
+    
+    // Logo text (blanco) en lugar de imagen
+    doc.setFillColor(255,255,255);
+    doc.roundedRect(M,9,48,20,2,2,'F');
+    doc.setTextColor(...navy);
+    doc.setFont('helvetica','normal');
+    doc.setFontSize(12);
+    doc.text('Formato de', M+4, 18);
+    doc.setFont('helvetica','normal');
+    doc.setFontSize(12);
+    doc.text('Vacaciones', M+4, 24);
+    
+    // Title
+    doc.setTextColor(255,255,255);
+    doc.setFont('helvetica','normal');
+    doc.setFontSize(18);
+    doc.text('Parkdale Mills Inc.',W/2+12,16,{align:'center'});
+    doc.setFontSize(11);
+    doc.setFont('helvetica','normal');
+    doc.text('Administrador de Vacaciones',W/2+12,24,{align:'center'});
+    doc.setFontSize(9);
+    doc.text('Hilos de Yecapixtla',W/2+12,31,{align:'center'});
+    // Folio badge
+    doc.setFillColor(...navy2);
+    doc.roundedRect(W-M-35,8,40,14,3,3,'F');
+    doc.setTextColor(255,255,255);
+    doc.setFont('helvetica','normal');
+    doc.setFontSize(8);
+    doc.text('FOLIO',W-M-15,13.5,{align:'center'});
+    doc.setFontSize(12);
+    doc.text(reg.folio,W-M-15,20,{align:'center'});
+    let y=52;
+    
+    // Section helper
+    function section(title,color){
+      doc.setFillColor(...color);
+      doc.roundedRect(M,y,W-M*2,7,2,2,'F');
+      doc.setTextColor(255,255,255);
+      doc.setFont('helvetica','normal');
+      doc.setFontSize(9);
+      doc.text(title,M+4,y+4.8);
+      y+=11;
+    }
+    function row(label,value,col2Label,col2Value){
+      const lw=(W-M*2)/2-4;
+      doc.setFillColor(...softBlue);
+      doc.rect(M,y,W-M*2,8,'F');
+      doc.setDrawColor(209,219,234);
+      doc.rect(M,y,W-M*2,8,'S');
+      doc.setTextColor(100,116,139);
+      doc.setFont('helvetica','normal');
+      doc.setFontSize(7.5);
+      doc.text(label,M+3,y+3.2);
+      doc.setTextColor(30,41,59);
+      doc.setFont('helvetica','normal');
+      doc.setFontSize(9);
+      doc.text(String(value||'—'),M+3,y+7);
+      if(col2Label){
+        doc.setTextColor(100,116,139);
+        doc.setFont('helvetica','normal');
+        doc.setFontSize(7.5);
+        doc.text(col2Label,M+lw+7,y+3.2);
+        doc.setTextColor(30,41,59);
+        doc.setFont('helvetica','normal');
+        doc.setFontSize(9);
+        doc.text(String(col2Value||'—'),M+lw+7,y+7);
+      }
+      y+=10;
+    }
+    section('SECCIÓN 1 — DATOS DEL EMPLEADO',navy);
+    row('Folio',reg.folio,'N° de Empleado',reg.num_emp);
+    row('Empleado',reg.empleado,'Departamento',reg.departamento);
+    row('Turno',reg.turno,'Fecha de Ingreso',fmtDate(reg.fecha_ingreso));
+    y+=4;
+    section('SECCIÓN 2 — ANTIGÜEDAD',navy);
+    row('Antigüedad',reg.antiguedad,'Días de Vacaciones que Aplican',reg.dias_aplican);
+    y+=4;
+    section('SECCIÓN 3 — VACACIONES',navy);
+    row('Fecha de Inicio',fmtDate(reg.fecha_inicio),'Fecha de Fin',fmtDate(reg.fecha_fin));
+    row('Días Disponibles',reg.dias_disponibles+' días','Días Tomados',reg.dias_tomados+' días');
+    row('Fecha de Regreso',fmtDate(reg.fecha_regreso),'Días Pendientes por Disfrutar',reg.dias_pendientes+' días');
+    // Divider
+    y+=10;
+    doc.setDrawColor(200,210,225);
+    doc.setLineWidth(0.5);
+    doc.line(M,y,W-M,y);
+    y+=12;
+    // Firmas
+    doc.setFillColor(...softBlue);
+    doc.roundedRect(M,y,W-M*2,7,2,2,'F');
+    doc.setTextColor(...navy);
+    doc.setFont('helvetica','normal');
+    doc.setFontSize(9);
+    doc.text('FIRMAS DE AUTORIZACIÓN',W/2,y+5,{align:'center'});
+    y+=14;
+    const fw=(W-M*2-10)/2;
+    // Firma 1
+    doc.setDrawColor(...navy);
+    doc.setLineWidth(0.8);
+    doc.line(M,y+20,M+fw,y+20);
+    doc.setTextColor(...navy);
+    doc.setFont('helvetica','normal');
+    doc.setFontSize(9);
+    doc.text('José Isaí Fonseca Vivas',M+fw/2,y+25,{align:'center'});
+    doc.setTextColor(100,116,139);
+    doc.setFont('helvetica','normal');
+    doc.setFontSize(8);
+    doc.text('Autoriza Vacaciones',M+fw/2,y+30,{align:'center'});
+    // Firma 2
+    const x2=M+fw+10;
+    doc.setDrawColor(...navy);
+    doc.line(x2,y+20,x2+fw,y+20);
+    doc.setTextColor(...navy);
+    doc.setFont('helvetica','normal');
+    doc.setFontSize(9);
+    doc.text(reg.empleado,x2+fw/2,y+25,{align:'center'});
+    doc.setTextColor(100,116,139);
+    doc.setFont('helvetica','normal');
+    doc.setFontSize(8);
+    doc.text('Empleado — N° '+reg.num_emp,x2+fw/2,y+30,{align:'center'});
+    // Footer
+    const pageH=279.4;
+    doc.setFillColor(...navy);
+    doc.rect(0,pageH-12,W,12,'F');
+    doc.setTextColor(255,255,255);
+    doc.setFontSize(7.5);
+    doc.setFont('helvetica','normal');
+    doc.text('Parkdale Mills Inc. — Hilos de Yecapixtla — Documento generado el '+new Date().toLocaleDateString('es-MX'),W/2,pageH-5,{align:'center'});
+    doc.save(`Vacaciones_${reg.folio}_${reg.empleado.replace(/ /g,'_')}.pdf`);
+    showToast('PDF descargado correctamente','success');
+  } catch(e) {
+    console.error('Error PDF:', e);
+    showToast('Error al generar el PDF: '+e.message,'error');
+  }
+}
+
+// â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ INIT CALL â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+document.addEventListener('keydown',e=>{if(e.key==='Enter'&&document.getElementById('loginScreen').style.display!=='none') doLogin();});
+</script>
+<script src="supabase-app.js?v=20260601-1"></script>
+</body>
+</html>
