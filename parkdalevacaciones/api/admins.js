@@ -11,7 +11,8 @@ module.exports = async function handler(req, res) {
     process.env.SUPABASE_URL ||
     process.env.NEXT_PUBLIC_SUPABASE_URL ||
     process.env.VITE_SUPABASE_URL ||
-    '';
+    process.env.SUPABASE_PROJECT_URL ||
+    'https://pzdheusvpoiyvoinxxzp.supabase.co';
   const serviceRoleKey =
     process.env.SUPABASE_SERVICE_ROLE_KEY ||
     process.env.SUPABASE_SERVICE_KEY ||
