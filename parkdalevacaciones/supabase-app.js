@@ -5,13 +5,64 @@
   let supabaseReady = false;
   let supabaseEnabled = false;
   let currentUser = null;
+  let currentAdminProfile = null;
   let runtimeConfig = {
-    supabaseUrl: 'https://pzdheusvpoiyvoinxxzp.supabase.co',
-    supabaseAnonKey: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InB6ZGhldXN2cG9peXZvaW54eHpwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODAyODA0NjQsImV4cCI6MjA5NTg1NjQ2NH0.FVrfNDsrumgP0T4ECTpGHBoePjRlBSO3ONEK1YX5Zok',
+    supabaseUrl: '',
+    supabaseAnonKey: '',
     authEmailDomain: 'parkdale.local',
     missing: []
   };
   const localFallbackAllowed = ['localhost', '127.0.0.1', ''].includes(window.location.hostname);
+
+  function usernameFromEmail(email) {
+    return String(email || '').split('@')[0].toLowerCase();
+  }
+
+  function exposeAdminProfile(profile) {
+    currentAdminProfile = profile || null;
+    window.currentAdminProfile = currentAdminProfile || { usuario: '', nombre_completo: '' };
+    const username = String((currentAdminProfile && currentAdminProfile.usuario) || usernameFromEmail(currentUser && currentUser.email)).toLowerCase();
+    const isRoot = username === 'isaifonseca';
+    window.isRootAdmin = isRoot;
+    document.body.classList.toggle('root-admin', isRoot);
+  }
+
+  async function loadAdminProfile() {
+    if (!supabaseEnabled || !currentUser) {
+      exposeAdminProfile(localFallbackAllowed ? { usuario: 'isaifonseca', nombre_completo: 'José Isaí Fonseca Vivas' } : null);
+      return currentAdminProfile;
+    }
+
+    const { data, error } = await supabaseClient
+      .from('administradores')
+      .select('*')
+      .eq('user_id', currentUser.id)
+      .maybeSingle();
+
+    const fallback = {
+      user_id: currentUser.id,
+      usuario: usernameFromEmail(currentUser.email),
+      nombre_completo: currentUser.user_metadata && currentUser.user_metadata.nombre_completo
+        ? currentUser.user_metadata.nombre_completo
+        : usernameFromEmail(currentUser.email) === 'isaifonseca'
+          ? 'José Isaí Fonseca Vivas'
+          : usernameFromEmail(currentUser.email)
+    };
+    if (error) {
+      console.warn('No se pudo cargar el perfil de administrador:', error.message);
+      exposeAdminProfile(fallback);
+      return currentAdminProfile;
+    }
+    exposeAdminProfile(data || fallback);
+    return currentAdminProfile;
+  }
+
+  function getAuthorizerName() {
+    return (currentAdminProfile && currentAdminProfile.nombre_completo) ||
+      (window.currentAdminProfile && window.currentAdminProfile.nombre_completo) ||
+      usernameFromEmail(currentUser && currentUser.email) ||
+      'Administrador';
+  }
 
   function toast(message, type = 'success') {
     if (typeof showToast === 'function') showToast(message, type);
@@ -57,6 +108,7 @@
         !window.supabase ? 'cliente Supabase' : null
       ].filter(Boolean);
       console.warn('Supabase no esta configurado:', runtimeConfig.missing.join(', '));
+      exposeAdminProfile(currentUser ? { usuario: 'isaifonseca', nombre_completo: 'José Isaí Fonseca Vivas' } : null);
       return false;
     }
 
@@ -81,6 +133,7 @@
       currentUser = session ? session.user : null;
       if (currentUser) {
         setTimeout(async () => {
+          await loadAdminProfile();
           await loadData();
           showApp();
           initApp();
@@ -130,7 +183,8 @@
       nombre: row.nombre,
       departamento: row.departamento,
       turno: row.turno,
-      fecha_ingreso: row.fecha_ingreso
+      fecha_ingreso: row.fecha_ingreso,
+      dias_disponibles: row.dias_disponibles || 0
     };
   }
 
@@ -150,16 +204,19 @@
       dias_disponibles: row.dias_disponibles,
       dias_tomados: row.dias_tomados,
       fecha_regreso: row.fecha_regreso,
-      dias_pendientes: row.dias_pendientes
+      dias_pendientes: row.dias_pendientes,
+      autorizado_por: row.autorizado_por
     };
   }
 
   async function loadData() {
     if (!supabaseEnabled || !currentUser) {
       localLoadData();
+      exposeAdminProfile(localFallbackAllowed ? { usuario: 'isaifonseca', nombre_completo: 'José Isaí Fonseca Vivas' } : null);
       return;
     }
 
+    await loadAdminProfile();
     const [empleadosResult, registrosResult] = await Promise.all([
       supabaseClient.from('empleados').select('*').order('nombre', { ascending: true }),
       supabaseClient.from('registros').select('*').order('created_at', { ascending: false })
@@ -184,7 +241,8 @@
       nombre: document.getElementById(prefix + '_nombre').value.trim(),
       departamento: document.getElementById(prefix + '_depto').value,
       turno: document.getElementById(prefix + '_turno').value,
-      fecha_ingreso: document.getElementById(prefix + '_ingreso').value
+      fecha_ingreso: document.getElementById(prefix + '_ingreso').value,
+      dias_disponibles: parseInt(document.getElementById(prefix + '_dias_disponibles').value, 10) || 0
     };
   }
 
@@ -259,6 +317,7 @@
       if (!localFallbackAllowed) {
         toast('Supabase no esta configurado. Falta: ' + runtimeConfig.missing.join(', ') + '. Revisa las variables de entorno en Vercel.', 'error');
       } else if (u === 'isaifonseca' && p === 'fonseca01') {
+        exposeAdminProfile({ usuario: 'isaifonseca', nombre_completo: 'José Isaí Fonseca Vivas' });
         localLoadData();
         showApp();
         initApp();
@@ -279,6 +338,7 @@
     }
 
     currentUser = data.user;
+    await loadAdminProfile();
     await loadData();
     showApp();
     initApp();
@@ -296,9 +356,57 @@
     empleados = [];
     registros = [];
     folioCounter = 1;
+    exposeAdminProfile(null);
     showLogin();
   };
   try { doLogout = window.doLogout; } catch (_) {}
+
+  window.addAdministrador = async function addAdministradorSupabase() {
+    try {
+      const hasSupabase = await ensureSupabase();
+      if (!hasSupabase) {
+        toast('Conecta Supabase para crear administradores.', 'error');
+        return;
+      }
+      await loadAdminProfile();
+      if (!window.isRootAdmin) {
+        toast('Solo isaifonseca puede agregar administradores.', 'error');
+        return;
+      }
+
+      const payload = {
+        nombre_completo: document.getElementById('adm_nombre').value.trim(),
+        numero_nomina: document.getElementById('adm_nomina').value.trim(),
+        cargo: document.getElementById('adm_cargo').value.trim(),
+        area: document.getElementById('adm_area').value.trim(),
+        usuario: document.getElementById('adm_usuario').value.trim(),
+        password: document.getElementById('adm_password').value
+      };
+
+      if (!payload.nombre_completo || !payload.numero_nomina || !payload.cargo || !payload.area || !payload.usuario || !payload.password) {
+        toast('Completa todos los campos del administrador.', 'error');
+        return;
+      }
+
+      const { data: sessionData } = await supabaseClient.auth.getSession();
+      const token = sessionData && sessionData.session ? sessionData.session.access_token : '';
+      const response = await fetch('/api/admins', {
+        method: 'POST',
+        headers: {
+          'content-type': 'application/json',
+          authorization: `Bearer ${token}`
+        },
+        body: JSON.stringify(payload)
+      });
+      const result = await response.json();
+      if (!response.ok) throw new Error(result.error || 'No se pudo crear el administrador.');
+      clearAdministrador();
+      toast('Administrador registrado correctamente.', 'success');
+    } catch (error) {
+      toast('No se pudo registrar el administrador: ' + error.message, 'error');
+    }
+  };
+  try { addAdministrador = window.addAdministrador; } catch (_) {}
 
   window.addEmpleado = async function addEmpleadoSupabase() {
     try {
@@ -419,10 +527,23 @@
         dias_disponibles: disp,
         dias_tomados: tomados,
         fecha_regreso: nextWeekday(ff),
-        dias_pendientes: disp - tomados
+        dias_pendientes: disp - tomados,
+        autorizado_por: getAuthorizerName(),
+        autorizado_por_user_id: currentUser && currentUser.id !== 'local' ? currentUser.id : null
       };
 
       const saved = await insertRecord(record);
+      employee.dias_disponibles = disp - tomados;
+      if (supabaseEnabled) {
+        await updateEmployee(employee.id, {
+          num: employee.num,
+          nombre: employee.nombre,
+          departamento: employee.departamento,
+          turno: employee.turno,
+          fecha_ingreso: employee.fecha_ingreso,
+          dias_disponibles: employee.dias_disponibles
+        });
+      }
       registros.unshift(saved);
       if (supabaseEnabled) folioCounter = (parseInt(saved.folio, 10) || folioCounter) + 1;
       else localSaveData();
