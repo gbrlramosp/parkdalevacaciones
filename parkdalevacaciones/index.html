@@ -365,10 +365,6 @@ tbody tr:last-child td{border-bottom:none}
               <label>Fecha de Ingreso *</label>
               <input type="date" id="ae_ingreso">
             </div>
-            <div class="form-group">
-              <label>D&iacute;as Disponibles *</label>
-              <input type="number" id="ae_dias_disponibles" placeholder="Ej: 12" min="0">
-            </div>
           </div>
           <div style="margin-top:20px;display:flex;gap:12px">
             <button class="btn btn-primary" onclick="addEmpleado()">
@@ -815,20 +811,21 @@ function addEmpleado(){
   const depto=document.getElementById('ae_depto').value;
   const turno=document.getElementById('ae_turno').value;
   const ingreso=document.getElementById('ae_ingreso').value;
-  const diasDisponibles=parseInt(document.getElementById('ae_dias_disponibles').value,10);
-  if(!num||!nombre||!depto||!turno||!ingreso||!Number.isFinite(diasDisponibles)){
+  if(!num||!nombre||!depto||!turno||!ingreso){
     showToast('Por favor completa todos los campos.','error'); return;
   }
   if(empleados.some(e=>String(e.num)===String(num))){
     showToast('El número de empleado ya existe.','error'); return;
   }
+  const ant=calcAntiguedad(ingreso);
+  const diasDisponibles=calcDiasVacaciones(ant.anios,ant.meses);
   empleados.push({num,nombre,departamento:depto,turno,fecha_ingreso:ingreso,dias_disponibles:diasDisponibles});
   saveData();
   showToast('Empleado registrado correctamente.','success');
   clearAddEmp();
 }
 function clearAddEmp(){
-  ['ae_num','ae_nombre','ae_ingreso','ae_dias_disponibles'].forEach(id=>document.getElementById(id).value='');
+  ['ae_num','ae_nombre','ae_ingreso'].forEach(id=>document.getElementById(id).value='');
   document.getElementById('ae_depto').value='';
   document.getElementById('ae_turno').value='';
 }
