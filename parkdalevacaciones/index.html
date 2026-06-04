@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Administrador de Vacaciones | Hilos de Yecapixtla</title>
+<title>Hilos de Yecapixtla - Administrador de Vacaciones</title>
 <!-- jsPDF desde CDN confiable con respaldo -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 <script>
@@ -78,6 +78,8 @@ button,input,select,textarea{font:inherit}
 .main-content{margin-left:var(--sidebar-w);padding:34px;min-height:100vh;max-width:1680px}
 .page{display:none}
 .page.active{display:block}
+.admin-only{display:none!important}
+body.root-admin .admin-only{display:flex!important}
 .page-header{margin-bottom:26px}
 .page-header h2{font-size:28px;font-weight:400;color:var(--green-dark);letter-spacing:.2px}
 .page-header p{font-size:15px;color:var(--muted);margin-top:6px}
@@ -282,6 +284,10 @@ tbody tr:last-child td{border-bottom:none}
         <svg viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z"/></svg>
         Consultar Registros
       </div>
+      <div class="nav-item admin-only" onclick="showPage('addAdministrador')">
+        <svg viewBox="0 0 24 24"><path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h9.26A6.98 6.98 0 0112 16c0-.7.1-1.37.29-2H12zm7 3v-3h-2v3h-3v2h3v3h2v-3h3v-2h-3z"/></svg>
+        Agregar Administrador
+      </div>
     </nav>
     <div class="sidebar-footer">
       <div class="logout-btn" onclick="doLogout()">
@@ -359,6 +365,10 @@ tbody tr:last-child td{border-bottom:none}
               <label>Fecha de Ingreso *</label>
               <input type="date" id="ae_ingreso">
             </div>
+            <div class="form-group">
+              <label>D&iacute;as Disponibles *</label>
+              <input type="number" id="ae_dias_disponibles" placeholder="Ej: 12" min="0">
+            </div>
           </div>
           <div style="margin-top:20px;display:flex;gap:12px">
             <button class="btn btn-primary" onclick="addEmpleado()">
@@ -391,6 +401,58 @@ tbody tr:last-child td{border-bottom:none}
             <tbody id="tbodyEmpleados"></tbody>
           </table>
         </div>
+      </div>
+    </div>
+
+    <!-- AGREGAR ADMINISTRADOR -->
+    <div id="page-addAdministrador" class="page">
+      <div class="page-header">
+        <h2>Agregar Administrador</h2>
+        <p>Registra un perfil con acceso independiente al sistema</p>
+      </div>
+      <div class="card">
+        <div class="card-title">
+          <svg viewBox="0 0 24 24"><path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h9.26A6.98 6.98 0 0112 16c0-.7.1-1.37.29-2H12zm7 3v-3h-2v3h-3v2h3v3h2v-3h3v-2h-3z"/></svg>
+          Datos del Administrador
+        </div>
+        <form onsubmit="return false">
+          <div class="form-grid">
+            <div class="form-group">
+              <label>Nombre Completo *</label>
+              <input type="text" id="adm_nombre" placeholder="Nombre completo">
+            </div>
+            <div class="form-group">
+              <label>N&uacute;mero de N&oacute;mina *</label>
+              <input type="text" id="adm_nomina" placeholder="Ej: 1001">
+            </div>
+            <div class="form-group">
+              <label>Cargo *</label>
+              <input type="text" id="adm_cargo" placeholder="Ej: Supervisor">
+            </div>
+            <div class="form-group">
+              <label>&Aacute;rea *</label>
+              <input type="text" id="adm_area" placeholder="Ej: Producci&oacute;n">
+            </div>
+            <div class="form-group">
+              <label>Usuario *</label>
+              <input type="text" id="adm_usuario" placeholder="Ej: usuario">
+            </div>
+            <div class="form-group">
+              <label>Contrase&ntilde;a *</label>
+              <input type="password" id="adm_password" placeholder="Contrase&ntilde;a">
+            </div>
+          </div>
+          <div style="margin-top:20px;display:flex;gap:12px;flex-wrap:wrap">
+            <button class="btn btn-primary" onclick="addAdministrador()">
+              <svg viewBox="0 0 24 24"><path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"/></svg>
+              Guardar Administrador
+            </button>
+            <button class="btn btn-outline" onclick="clearAdministrador()">
+              <svg viewBox="0 0 24 24"><path d="M12 5V1L7 6l5 5V7c3.31 0 6 2.69 6 6s-2.69 6-6 6-6-2.69-6-6H4c0 4.42 3.58 8 8 8s8-3.58 8-8-3.58-8-8-8z"/></svg>
+              Limpiar
+            </button>
+          </div>
+        </form>
       </div>
     </div>
 
@@ -575,6 +637,10 @@ tbody tr:last-child td{border-bottom:none}
           <label>Fecha de Ingreso *</label>
           <input type="date" id="edit_ingreso">
         </div>
+        <div class="form-group">
+          <label>D&iacute;as Disponibles *</label>
+          <input type="number" id="edit_dias_disponibles" min="0">
+        </div>
       </div>
     </div>
     <div class="modal-footer">
@@ -614,6 +680,21 @@ tbody tr:last-child td{border-bottom:none}
 let empleados = JSON.parse(localStorage.getItem('pm_empleados')||'[]');
 let registros = JSON.parse(localStorage.getItem('pm_registros')||'[]');
 let folioCounter = parseInt(localStorage.getItem('pm_folio')||'1');
+window.currentAdminProfile = { usuario: '', nombre_completo: '' };
+window.isRootAdmin = false;
+
+function getAuthorizerName(){
+  return (window.currentAdminProfile && window.currentAdminProfile.nombre_completo) || 'JosÃ© IsaÃ­ Fonseca Vivas';
+}
+
+getAuthorizerName = function(){
+  return (window.currentAdminProfile && window.currentAdminProfile.nombre_completo) || 'Jos\u00e9 Isa\u00ed Fonseca Vivas';
+};
+
+function setRootAdmin(isRoot){
+  window.isRootAdmin = !!isRoot;
+  document.body.classList.toggle('root-admin', !!isRoot);
+}
 
 function saveData(){
   localStorage.setItem('pm_empleados', JSON.stringify(empleados));
@@ -626,6 +707,9 @@ function doLogin(){
   const u=document.getElementById('loginUser').value.trim();
   const p=document.getElementById('loginPass').value.trim();
   if(u==='isaifonseca' && p==='fonseca01'){
+    window.currentAdminProfile = { usuario: 'isaifonseca', nombre_completo: 'JosÃ© IsaÃ­ Fonseca Vivas' };
+    window.currentAdminProfile = { usuario: 'isaifonseca', nombre_completo: 'Jos\u00e9 Isa\u00ed Fonseca Vivas' };
+    setRootAdmin(true);
     document.getElementById('loginScreen').style.display='none';
     document.getElementById('appShell').style.display='block';
     initApp();
@@ -640,14 +724,20 @@ function doLogout(){
   document.getElementById('appShell').style.display='none';
   document.getElementById('loginUser').value='';
   document.getElementById('loginPass').value='';
+  window.currentAdminProfile = { usuario: '', nombre_completo: '' };
+  setRootAdmin(false);
 }
 
 // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ NAVIGATION â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 function showPage(id){
+  if(id==='addAdministrador' && !window.isRootAdmin){
+    showToast('No tienes permiso para abrir esta ventana.','error');
+    return;
+  }
   document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
   document.querySelectorAll('.nav-item').forEach(n=>n.classList.remove('active'));
   document.getElementById('page-'+id).classList.add('active');
-  event.currentTarget.classList.add('active');
+  if(event && event.currentTarget) event.currentTarget.classList.add('active');
   if(id==='verEmpleados') renderEmpleados();
   if(id==='generarFormato'){ prepFormato(); }
   if(id==='consultarRegistros'){ currentPage=1; filterRegistros(); }
@@ -664,6 +754,16 @@ function showToast(message,type='success'){
   stack.appendChild(toast);
   setTimeout(()=>{ toast.style.opacity='0'; toast.style.transform='translateY(-8px)'; },3600);
   setTimeout(()=>toast.remove(),4000);
+}
+
+async function addAdministrador(){
+  showToast('Conecta Supabase para crear administradores reales.','error');
+}
+function clearAdministrador(){
+  ['adm_nombre','adm_nomina','adm_cargo','adm_area','adm_usuario','adm_password'].forEach(id=>{
+    const el=document.getElementById(id);
+    if(el) el.value='';
+  });
 }
 
 // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ INIT â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
@@ -715,32 +815,35 @@ function addEmpleado(){
   const depto=document.getElementById('ae_depto').value;
   const turno=document.getElementById('ae_turno').value;
   const ingreso=document.getElementById('ae_ingreso').value;
-  if(!num||!nombre||!depto||!turno||!ingreso){
+  const diasDisponibles=parseInt(document.getElementById('ae_dias_disponibles').value,10);
+  if(!num||!nombre||!depto||!turno||!ingreso||!Number.isFinite(diasDisponibles)){
     showToast('Por favor completa todos los campos.','error'); return;
   }
   if(empleados.some(e=>String(e.num)===String(num))){
     showToast('El número de empleado ya existe.','error'); return;
   }
-  empleados.push({num,nombre,departamento:depto,turno,fecha_ingreso:ingreso});
+  empleados.push({num,nombre,departamento:depto,turno,fecha_ingreso:ingreso,dias_disponibles:diasDisponibles});
   saveData();
   showToast('Empleado registrado correctamente.','success');
   clearAddEmp();
 }
 function clearAddEmp(){
-  ['ae_num','ae_nombre','ae_ingreso'].forEach(id=>document.getElementById(id).value='');
+  ['ae_num','ae_nombre','ae_ingreso','ae_dias_disponibles'].forEach(id=>document.getElementById(id).value='');
   document.getElementById('ae_depto').value='';
   document.getElementById('ae_turno').value='';
 }
 function renderEmpleados(){
   const tbody=document.getElementById('tbodyEmpleados');
+  const head=document.querySelector('#tableEmpleados thead tr');
+  if(head) head.innerHTML='<th>N&deg; Emp</th><th>Nombre</th><th>Departamento</th><th>Turno</th><th>Fecha Ingreso</th><th>D&iacute;as Disponibles</th><th>Acciones</th>';
   tbody.innerHTML='';
   if(!empleados.length){
-    tbody.innerHTML='<tr><td colspan="6" style="text-align:center;padding:24px;color:var(--gray-500)">No hay empleados registrados.</td></tr>';
+    tbody.innerHTML='<tr><td colspan="7" style="text-align:center;padding:24px;color:var(--gray-500)">No hay empleados registrados.</td></tr>';
     return;
   }
   empleados.forEach((e,i)=>{
     const tr=document.createElement('tr');
-    tr.innerHTML=`<td><strong>${e.num}</strong></td><td>${e.nombre}</td><td><span class="badge badge-blue">${e.departamento}</span></td><td><span class="badge badge-green">${e.turno}</span></td><td>${fmtDate(e.fecha_ingreso)}</td><td><button class="btn btn-warning btn-sm" onclick="openEditEmp(${i})"><svg viewBox="0 0 24 24" style="width:13px;height:13px;fill:currentColor"><path d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04c.39-.39.39-1.02 0-1.41l-2.34-2.34c-.39-.39-1.02-.39-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z"/></svg> Editar</button></td>`;
+    tr.innerHTML=`<td><strong>${e.num}</strong></td><td>${e.nombre}</td><td><span class="badge badge-blue">${e.departamento}</span></td><td><span class="badge badge-green">${e.turno}</span></td><td>${fmtDate(e.fecha_ingreso)}</td><td><span class="badge badge-green">${parseInt(e.dias_disponibles,10)||0} d&iacute;as</span></td><td><button class="btn btn-warning btn-sm" onclick="openEditEmp(${i})"><svg viewBox="0 0 24 24" style="width:13px;height:13px;fill:currentColor"><path d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04c.39-.39.39-1.02 0-1.41l-2.34-2.34c-.39-.39-1.02-.39-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z"/></svg> Editar</button></td>`;
     tbody.appendChild(tr);
   });
 }
@@ -752,6 +855,7 @@ function openEditEmp(i){
   document.getElementById('edit_depto').value=e.departamento;
   document.getElementById('edit_turno').value=e.turno;
   document.getElementById('edit_ingreso').value=e.fecha_ingreso;
+  document.getElementById('edit_dias_disponibles').value=parseInt(e.dias_disponibles,10)||0;
   openModal('modalEditEmp');
 }
 function actualizarEmpleado(){
@@ -761,9 +865,10 @@ function actualizarEmpleado(){
   const depto=document.getElementById('edit_depto').value;
   const turno=document.getElementById('edit_turno').value;
   const ingreso=document.getElementById('edit_ingreso').value;
-  if(!num||!nombre||!ingreso){showToast('Por favor completa todos los campos.','error');return;}
+  const diasDisponibles=parseInt(document.getElementById('edit_dias_disponibles').value,10);
+  if(!num||!nombre||!ingreso||!Number.isFinite(diasDisponibles)){showToast('Por favor completa todos los campos.','error');return;}
   if(empleados.some((e,ei)=>String(e.num)===String(num)&&ei!==i)){showToast('El número de empleado ya existe.','error');return;}
-  empleados[i]={num,nombre,departamento:depto,turno,fecha_ingreso:ingreso};
+  empleados[i]={num,nombre,departamento:depto,turno,fecha_ingreso:ingreso,dias_disponibles:diasDisponibles};
   saveData();
   closeModal('modalEditEmp');
   renderEmpleados();
@@ -812,9 +917,7 @@ function fillEmpleadoData(){
   document.getElementById('gf_antiguedad').value=texto;
   const diasAplican=calcDiasVacaciones(anios,meses);
   document.getElementById('gf_dias_aplican').value=diasAplican+' días';
-  // dias disponibles = dias aplican - acumulado tomado
-  const tomadoAcum=calcTomadosAcum(e.num);
-  const disponibles=diasAplican - tomadoAcum;
+  const disponibles=parseInt(e.dias_disponibles,10)||0;
   document.getElementById('gf_dias_disp').value=disponibles+' días';
   calcVacaciones();
 }
@@ -862,7 +965,6 @@ function countWeekdays(start, end){
 function nextWeekday(end){
   const e=new Date(end+'T12:00:00');
   e.setDate(e.getDate()+1);
-  while(e.getDay()===0||e.getDay()===6) e.setDate(e.getDate()+1);
   return e.toISOString().split('T')[0];
 }
 function calcVacaciones(){
@@ -899,8 +1001,10 @@ function guardarFormato(){
     fecha_ingreso:e.fecha_ingreso, antiguedad:document.getElementById('gf_antiguedad').value,
     dias_aplican:document.getElementById('gf_dias_aplican').value,
     fecha_inicio:fi, fecha_fin:ff, dias_disponibles:disp, dias_tomados:tomados,
-    fecha_regreso:nextWeekday(ff), dias_pendientes:disp-tomados
+    fecha_regreso:nextWeekday(ff), dias_pendientes:disp-tomados,
+    autorizado_por:getAuthorizerName()
   };
+  e.dias_disponibles=disp-tomados;
   registros.push(reg);
   folioCounter++;
   saveData();
@@ -1114,7 +1218,7 @@ function descargarPDF(reg){
     doc.setTextColor(...navy);
     doc.setFont('helvetica','normal');
     doc.setFontSize(9);
-    doc.text('José Isaí Fonseca Vivas',M+fw/2,y+25,{align:'center'});
+    doc.text(String(reg.autorizado_por || getAuthorizerName()),M+fw/2,y+25,{align:'center'});
     doc.setTextColor(100,116,106);
     doc.setFont('helvetica','normal');
     doc.setFontSize(8);
@@ -1150,6 +1254,6 @@ function descargarPDF(reg){
 // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ INIT CALL â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 document.addEventListener('keydown',e=>{if(e.key==='Enter'&&document.getElementById('loginScreen').style.display!=='none') doLogin();});
 </script>
-<script src="supabase-app.js?v=20260601-1"></script>
+<script src="supabase-app.js?v=20260603-admins"></script>
 </body>
 </html>
