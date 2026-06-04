@@ -12,11 +12,19 @@ module.exports = async function handler(req, res) {
     process.env.NEXT_PUBLIC_SUPABASE_URL ||
     process.env.VITE_SUPABASE_URL ||
     '';
-  const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY || '';
+  const serviceRoleKey =
+    process.env.SUPABASE_SERVICE_ROLE_KEY ||
+    process.env.SUPABASE_SERVICE_KEY ||
+    process.env.SUPABASE_SERVICE_ROLE ||
+    '';
   const authEmailDomain = process.env.SUPABASE_AUTH_EMAIL_DOMAIN || 'parkdale.local';
 
   if (!supabaseUrl || !serviceRoleKey) {
-    res.status(500).json({ error: 'Falta SUPABASE_URL o SUPABASE_SERVICE_ROLE_KEY en Vercel.' });
+    const missing = [
+      !supabaseUrl ? 'SUPABASE_URL' : null,
+      !serviceRoleKey ? 'SUPABASE_SERVICE_ROLE_KEY' : null
+    ].filter(Boolean);
+    res.status(500).json({ error: 'Faltan variables de entorno en Vercel: ' + missing.join(', ') + '.' });
     return;
   }
 
