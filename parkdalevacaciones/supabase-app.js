@@ -236,14 +236,23 @@
   }
 
   function employeePayloadFromForm(prefix) {
-    return {
+    const payload = {
       num: document.getElementById(prefix + '_num').value.trim(),
       nombre: document.getElementById(prefix + '_nombre').value.trim(),
       departamento: document.getElementById(prefix + '_depto').value,
       turno: document.getElementById(prefix + '_turno').value,
-      fecha_ingreso: document.getElementById(prefix + '_ingreso').value,
-      dias_disponibles: parseInt(document.getElementById(prefix + '_dias_disponibles').value, 10) || 0
+      fecha_ingreso: document.getElementById(prefix + '_ingreso').value
     };
+    const diasField = document.getElementById(prefix + '_dias_disponibles');
+    if (diasField) {
+      payload.dias_disponibles = parseInt(diasField.value, 10) || 0;
+    } else if (typeof calcAntiguedad === 'function' && typeof calcDiasVacaciones === 'function' && payload.fecha_ingreso) {
+      const ant = calcAntiguedad(payload.fecha_ingreso);
+      payload.dias_disponibles = calcDiasVacaciones(ant.anios, ant.meses);
+    } else {
+      payload.dias_disponibles = 0;
+    }
+    return payload;
   }
 
   async function insertEmployee(payload) {
