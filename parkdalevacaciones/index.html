@@ -53,7 +53,7 @@ button,input,select,textarea{font:inherit}
 .login-form label{display:block;font-size:15px;font-weight:400;color:var(--muted);text-transform:none;letter-spacing:0.2px;margin-bottom:7px;margin-top:20px}
 .login-form input{width:100%;padding:13px 16px;border:1px solid var(--line);border-radius:10px;font-size:15px;transition:border-color .2s,box-shadow .2s;outline:none;background:#fbfdfb;color:var(--ink)}
 .login-form input:focus{border-color:var(--green-light);box-shadow:0 0 0 4px rgba(88,129,87,.14);background:white}
-.login-btn{width:100%;margin-top:28px;padding:14px;background:var(--green-dark);color:white;border:none;border-radius:10px;font-size:15px;font-weight:400;cursor:pointer;letter-spacing:.2px;transition:opacity .2s,transform .1s;box-shadow:0 12px 24px rgba(52,78,65,0.22)}
+.login-btn{width:100%;margin-top:28px;padding:14px;background:var(--green-dark);color:white;border:none;border-radius:16px;font-size:15px;font-weight:400;cursor:pointer;letter-spacing:.2px;transition:opacity .2s,transform .1s;box-shadow:0 12px 24px rgba(52,78,65,0.22)}
 .login-btn:hover{opacity:.94;transform:translateY(-1px)}
 .login-error{color:#e53935;font-size:13px;text-align:center;margin-top:10px;display:none}
 
@@ -77,7 +77,7 @@ button,input,select,textarea{font:inherit}
 .session-info{min-width:0;text-align:center}
 .session-name{color:white;font-size:13px;font-weight:700;line-height:1.2;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;text-align:center}
 .session-role{color:rgba(255,255,255,.72);font-size:12px;font-weight:400;line-height:1.2;margin-top:3px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;text-align:center}
-.logout-btn{display:flex;align-items:center;justify-content:center;gap:10px;width:100%;min-height:40px;padding:10px 12px;border:1px solid rgba(255,255,255,.18);border-radius:12px;background:rgba(255,255,255,.12);color:white;font-size:13px;font-weight:400;cursor:pointer;transition:background .2s,transform .1s,border-color .2s}
+.logout-btn{display:flex;align-items:center;justify-content:center;gap:10px;width:100%;min-height:40px;padding:10px 12px;border:1px solid rgba(255,255,255,.18);border-radius:18px;background:rgba(255,255,255,.12);color:white;font-size:13px;font-weight:400;cursor:pointer;transition:background .2s,transform .1s,border-color .2s}
 .logout-btn:hover{background:rgba(255,255,255,.18);border-color:rgba(255,255,255,.28);transform:translateY(-1px)}
 .logout-btn svg{width:16px;height:16px;fill:currentColor}
 .main-content{margin-left:var(--sidebar-w);padding:34px;min-height:100vh;max-width:1680px}
@@ -101,7 +101,7 @@ body.root-admin .admin-only{display:flex!important}
 .form-group input,.form-group select{padding:12px 14px;border:1px solid var(--line);border-radius:10px;font-size:14px;color:var(--ink);transition:border-color .2s,box-shadow .2s;outline:none;background:#fbfdfb;min-width:0}
 .form-group input:focus,.form-group select:focus{border-color:var(--green-light);box-shadow:0 0 0 4px rgba(88,129,87,.12);background:white}
 .form-group input[readonly],.form-group select[disabled]{background:var(--green-ultra);color:var(--muted);cursor:default}
-.btn{display:inline-flex;align-items:center;justify-content:center;gap:7px;padding:11px 21px;border:none;border-radius:10px;font-size:14px;font-weight:400;cursor:pointer;transition:all .2s;min-height:42px;text-align:center}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:7px;padding:11px 21px;border:none;border-radius:18px;font-size:14px;font-weight:400;cursor:pointer;transition:all .2s;min-height:42px;text-align:center}
 .btn svg{width:15px;height:15px;fill:currentColor}
 .btn-primary{background:var(--green-dark);color:white;box-shadow:0 9px 20px rgba(52,78,65,.18)}
 .btn-primary:hover{opacity:.9;transform:translateY(-1px)}
@@ -131,7 +131,7 @@ tbody tr:last-child td{border-bottom:none}
 
 /* PAGINATION */
 .pagination{display:flex;gap:6px;margin-top:16px;justify-content:flex-end;flex-wrap:wrap}
-.page-btn{padding:7px 13px;border:1px solid var(--line);border-radius:8px;background:white;cursor:pointer;font-size:13px;font-weight:400;transition:all .2s;color:var(--ink)}
+.page-btn{padding:7px 13px;border:1px solid var(--line);border-radius:16px;background:white;cursor:pointer;font-size:13px;font-weight:400;transition:all .2s;color:var(--ink)}
 .page-btn:hover,.page-btn.active{background:var(--green-mid);border-color:var(--green-mid);color:white}
 
 /* FILTERS */
@@ -147,7 +147,7 @@ tbody tr:last-child td{border-bottom:none}
 .modal{background:white;border-radius:18px;width:100%;max-width:860px;max-height:90vh;overflow-y:auto;box-shadow:var(--shadow-lg)}
 .modal-header{padding:22px 26px;border-bottom:1px solid var(--line);display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;background:white;z-index:1}
 .modal-header h3{font-size:17px;font-weight:400;color:var(--green-dark)}
-.modal-close{width:34px;height:34px;border-radius:10px;border:none;background:var(--green-ultra);cursor:pointer;display:flex;align-items:center;justify-content:center;color:var(--muted);font-size:18px;transition:all .2s}
+.modal-close{width:34px;height:34px;border-radius:50%;border:none;background:var(--green-ultra);cursor:pointer;display:flex;align-items:center;justify-content:center;color:var(--muted);font-size:18px;transition:all .2s}
 .modal-close:hover{background:var(--green-pale);color:var(--green-dark)}
 .modal-body{padding:26px}
 .modal-footer{padding:18px 26px;border-top:1px solid var(--line);display:flex;gap:10px;justify-content:flex-end}
