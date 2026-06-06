@@ -25,11 +25,12 @@
     const isRoot = username === 'isaifonseca';
     window.isRootAdmin = isRoot;
     document.body.classList.toggle('root-admin', isRoot);
+    if (typeof window.updateSidebarProfile === 'function') window.updateSidebarProfile();
   }
 
   async function loadAdminProfile() {
     if (!supabaseEnabled || !currentUser) {
-      exposeAdminProfile(localFallbackAllowed ? { usuario: 'isaifonseca', nombre_completo: 'José Isaí Fonseca Vivas' } : null);
+      exposeAdminProfile(localFallbackAllowed ? { usuario: 'isaifonseca', nombre_completo: 'José Isaí Fonseca Vivas', cargo: 'Administrador' } : null);
       return currentAdminProfile;
     }
 
@@ -108,7 +109,7 @@
         !window.supabase ? 'cliente Supabase' : null
       ].filter(Boolean);
       console.warn('Supabase no esta configurado:', runtimeConfig.missing.join(', '));
-      exposeAdminProfile(currentUser ? { usuario: 'isaifonseca', nombre_completo: 'José Isaí Fonseca Vivas' } : null);
+      exposeAdminProfile(currentUser ? { usuario: 'isaifonseca', nombre_completo: 'José Isaí Fonseca Vivas', cargo: 'Administrador' } : null);
       return false;
     }
 
@@ -212,7 +213,7 @@
   async function loadData() {
     if (!supabaseEnabled || !currentUser) {
       localLoadData();
-      exposeAdminProfile(localFallbackAllowed ? { usuario: 'isaifonseca', nombre_completo: 'José Isaí Fonseca Vivas' } : null);
+      exposeAdminProfile(localFallbackAllowed ? { usuario: 'isaifonseca', nombre_completo: 'José Isaí Fonseca Vivas', cargo: 'Administrador' } : null);
       return;
     }
 
@@ -326,7 +327,7 @@
       if (!localFallbackAllowed) {
         toast('Supabase no esta configurado. Falta: ' + runtimeConfig.missing.join(', ') + '. Revisa las variables de entorno en Vercel.', 'error');
       } else if (u === 'isaifonseca' && p === 'fonseca01') {
-        exposeAdminProfile({ usuario: 'isaifonseca', nombre_completo: 'José Isaí Fonseca Vivas' });
+        exposeAdminProfile({ usuario: 'isaifonseca', nombre_completo: 'José Isaí Fonseca Vivas', cargo: 'Administrador' });
         localLoadData();
         showApp();
         initApp();
