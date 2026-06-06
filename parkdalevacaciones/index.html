@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Administrador de Vacaciones | Hilos de Yecapixtla</title>
+<title>Hilos de Yecapixtla - Administrador de Vacaciones</title>
 <!-- jsPDF desde CDN confiable con respaldo -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 <script>
@@ -32,12 +32,12 @@
   --gray-100: #f4f7f2;
   --gray-500: #64746a;
   --white: #ffffff;
-  --sidebar-w: 286px;
+  --sidebar-w: 253px;
   --radius: 14px;
   --shadow: 0 12px 30px rgba(52,78,65,0.10);
   --shadow-lg: 0 22px 58px rgba(31,47,40,0.22);
 }
-*{box-sizing:border-box;margin:0;padding:0}
+*{box-sizing:border-box;margin:0;padding:0;font-family:Arial,Helvetica,sans-serif}
 html{font-family:Arial,Helvetica,sans-serif;-webkit-text-size-adjust:100%}
 body{font-family:Arial,Helvetica,sans-serif;background:linear-gradient(180deg,#f7faf6 0%,#eef4ec 100%);color:var(--ink);min-height:100vh;font-weight:400}
 button,input,select,textarea{font:inherit}
@@ -45,12 +45,12 @@ button,input,select,textarea{font:inherit}
 /* LOGIN */
 #loginScreen{display:flex;align-items:center;justify-content:center;min-height:100vh;background:linear-gradient(135deg,var(--green-dark) 0%,var(--green-mid) 54%,var(--green-light) 100%);position:relative;overflow:hidden;padding:24px}
 #loginScreen::before{content:'';position:absolute;inset:0;background:radial-gradient(circle at 18% 15%,rgba(255,255,255,.16),transparent 32%),linear-gradient(135deg,rgba(255,255,255,.08) 0%,transparent 44%)}
-.login-card{background:rgba(255,255,255,0.98);border:1px solid rgba(255,255,255,0.62);border-radius:18px;padding:48px 44px;width:min(460px,calc(100vw - 32px));box-shadow:var(--shadow-lg);position:relative;z-index:1}
+.login-card{background:rgba(255,255,255,0.98);border:1px solid rgba(255,255,255,0.62);border-radius:18px;padding:35px 31px;width:min(387px,calc(100vw - 32px));box-shadow:var(--shadow-lg);position:relative;z-index:1}
 .login-logo{text-align:center;margin-bottom:30px}
 .brand-logo{display:block;width:230px;max-width:86%;height:auto;object-fit:contain;margin:0 auto 16px}
 .login-logo h1{font-family:Arial,Helvetica,sans-serif;font-size:23px;color:var(--green-dark);line-height:1.2;font-weight:400}
-.login-logo p{font-size:12px;color:var(--green-mid);font-weight:400;letter-spacing:1.6px;text-transform:uppercase;margin-top:6px}
-.login-form label{display:block;font-size:12px;font-weight:400;color:var(--muted);text-transform:uppercase;letter-spacing:0.8px;margin-bottom:7px;margin-top:20px}
+.login-logo p{font-size:14px;color:var(--green-mid);font-weight:400;letter-spacing:.3px;text-transform:none;margin-top:6px}
+.login-form label{display:block;font-size:15px;font-weight:400;color:var(--muted);text-transform:none;letter-spacing:0.2px;margin-bottom:7px;margin-top:20px}
 .login-form input{width:100%;padding:13px 16px;border:1px solid var(--line);border-radius:10px;font-size:15px;transition:border-color .2s,box-shadow .2s;outline:none;background:#fbfdfb;color:var(--ink)}
 .login-form input:focus{border-color:var(--green-light);box-shadow:0 0 0 4px rgba(88,129,87,.14);background:white}
 .login-btn{width:100%;margin-top:28px;padding:14px;background:var(--green-dark);color:white;border:none;border-radius:10px;font-size:15px;font-weight:400;cursor:pointer;letter-spacing:.2px;transition:opacity .2s,transform .1s;box-shadow:0 12px 24px rgba(52,78,65,0.22)}
@@ -60,20 +60,25 @@ button,input,select,textarea{font:inherit}
 /* APP SHELL */
 #appShell{display:none;min-height:100vh}
 .sidebar{position:fixed;top:0;left:0;width:var(--sidebar-w);height:100vh;background:linear-gradient(180deg,var(--green-dark) 0%,var(--green-mid) 100%);display:flex;flex-direction:column;z-index:100;box-shadow:5px 0 28px rgba(31,47,40,0.24)}
-.sidebar-header{padding:28px 22px 24px;border-bottom:1px solid rgba(255,255,255,0.12)}
+.sidebar-header{padding:24px 16px 20px;border-bottom:1px solid rgba(255,255,255,0.12)}
 .sidebar-brand{display:flex;flex-direction:column;align-items:center;text-align:center;gap:10px}
-.sidebar-logo{width:176px;height:auto;max-height:68px;object-fit:contain;background:rgba(255,255,255,.08);border-radius:10px;padding:8px;filter:brightness(0) invert(1)}
+.sidebar-logo{width:154px;height:auto;max-height:62px;object-fit:contain;background:transparent;border-radius:0;padding:0;filter:brightness(0) invert(1)}
 .sidebar-title{color:white}
-.sidebar-title strong{display:block;font-size:17px;font-weight:400;line-height:1.2}
-.sidebar-title span{display:block;font-size:11px;color:rgba(255,255,255,0.76);letter-spacing:1px;text-transform:uppercase;margin-top:5px}
-.sidebar-nav{flex:1;padding:18px 14px;overflow-y:auto}
-.nav-item{display:flex;align-items:center;gap:12px;padding:13px 15px;border-radius:12px;cursor:pointer;color:rgba(255,255,255,0.78);font-size:14px;font-weight:400;transition:all .2s;margin-bottom:6px}
+.sidebar-title strong{display:block;font-size:17px;font-weight:700;line-height:1.2}
+.sidebar-title span{display:block;font-size:12px;color:rgba(255,255,255,0.76);letter-spacing:.2px;text-transform:none;margin-top:5px}
+.sidebar-nav{flex:1;padding:16px 10px;overflow-y:auto}
+.nav-item{display:flex;align-items:center;gap:10px;padding:12px 12px;border-radius:12px;cursor:pointer;color:rgba(255,255,255,0.78);font-size:14px;font-weight:400;transition:all .2s;margin-bottom:6px}
 .nav-item:hover{background:rgba(255,255,255,0.11);color:white}
 .nav-item.active{background:rgba(255,255,255,0.18);color:white;box-shadow:0 10px 22px rgba(0,0,0,0.14)}
 .nav-item svg{width:18px;height:18px;fill:currentColor;flex-shrink:0}
-.sidebar-footer{padding:18px 22px;border-top:1px solid rgba(255,255,255,0.12)}
-.logout-btn{display:flex;align-items:center;gap:10px;color:rgba(255,255,255,0.72);font-size:13px;font-weight:400;cursor:pointer;transition:color .2s}
-.logout-btn:hover{color:white}
+.sidebar-footer{padding:16px;border-top:1px solid rgba(255,255,255,0.12);display:flex;flex-direction:column;gap:12px}
+.session-card{display:grid;grid-template-columns:36px 1fr;gap:10px;align-items:center;padding:10px;border:1px solid rgba(255,255,255,.14);border-radius:12px;background:rgba(255,255,255,.08)}
+.session-avatar{width:36px;height:36px;border-radius:50%;display:flex;align-items:center;justify-content:center;background:rgba(255,255,255,.16);color:white;font-size:14px;font-weight:700}
+.session-info{min-width:0}
+.session-name{color:white;font-size:12px;font-weight:700;line-height:1.2;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.session-role{color:rgba(255,255,255,.72);font-size:11px;font-weight:400;line-height:1.2;margin-top:3px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.logout-btn{display:flex;align-items:center;justify-content:center;gap:10px;width:100%;min-height:40px;padding:10px 12px;border:1px solid rgba(255,255,255,.18);border-radius:12px;background:rgba(255,255,255,.12);color:white;font-size:13px;font-weight:400;cursor:pointer;transition:background .2s,transform .1s,border-color .2s}
+.logout-btn:hover{background:rgba(255,255,255,.18);border-color:rgba(255,255,255,.28);transform:translateY(-1px)}
 .logout-btn svg{width:16px;height:16px;fill:currentColor}
 .main-content{margin-left:var(--sidebar-w);padding:34px;min-height:100vh;max-width:1680px}
 .page{display:none}
@@ -172,11 +177,11 @@ tbody tr:last-child td{border-bottom:none}
 @keyframes toastIn{from{opacity:0;transform:translateY(-8px)}to{opacity:1;transform:translateY(0)}}
 
 @media (max-width: 1100px){
-  :root{--sidebar-w:238px}
+  :root{--sidebar-w:233px}
   .main-content{padding:26px}
   .form-grid{grid-template-columns:repeat(auto-fit,minmax(190px,1fr))}
   .stats-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
-  .sidebar-logo{width:150px}
+  .sidebar-logo{width:132px}
 }
 
 @media (max-width: 760px){
@@ -239,9 +244,9 @@ tbody tr:last-child td{border-bottom:none}
     </div>
     <div class="login-form">
       <label>Usuario</label>
-      <input type="text" id="loginUser" placeholder="Ingresa tu usuario" autocomplete="off">
+      <input type="text" id="loginUser" autocomplete="off">
       <label>Contraseña</label>
-      <input type="password" id="loginPass" placeholder="Ingresa tu contraseña">
+      <input type="password" id="loginPass">
       <div class="login-error" id="loginError">Credenciales incorrectas. Intenta de nuevo.</div>
       <button class="login-btn" onclick="doLogin()">
         <svg style="width:16px;height:16px;fill:white;vertical-align:middle;margin-right:6px" viewBox="0 0 24 24"><path d="M11 7L9.6 8.4l2.6 2.6H2v2h10.2l-2.6 2.6L11 17l5-5-5-5zm9 12h-8v2h8c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2h-8v2h8v14z"/></svg>
@@ -290,6 +295,13 @@ tbody tr:last-child td{border-bottom:none}
       </div>
     </nav>
     <div class="sidebar-footer">
+      <div class="session-card">
+        <div class="session-avatar" id="sessionAvatar">--</div>
+        <div class="session-info">
+          <div class="session-name" id="sessionName">Usuario</div>
+          <div class="session-role" id="sessionRole">Sesion activa</div>
+        </div>
+      </div>
       <div class="logout-btn" onclick="doLogout()">
         <svg viewBox="0 0 24 24"><path d="M17 7l-1.41 1.41L18.17 11H8v2h10.17l-2.58 2.58L17 17l5-5zM4 5h8V3H4c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h8v-2H4V5z"/></svg>
         Cerrar Sesión
@@ -690,7 +702,23 @@ getAuthorizerName = function(){
 function setRootAdmin(isRoot){
   window.isRootAdmin = !!isRoot;
   document.body.classList.toggle('root-admin', !!isRoot);
+  updateSidebarProfile();
 }
+
+function updateSidebarProfile(){
+  const profile=window.currentAdminProfile||{};
+  const name=profile.nombre_completo||profile.usuario||'Usuario';
+  const role=profile.cargo||profile.area||(window.isRootAdmin?'Administrador':'Usuario');
+  const avatar=document.getElementById('sessionAvatar');
+  const nameEl=document.getElementById('sessionName');
+  const roleEl=document.getElementById('sessionRole');
+  if(nameEl) nameEl.textContent=name;
+  if(roleEl) roleEl.textContent=role;
+  if(avatar){
+    avatar.textContent=String(name).split(/\s+/).filter(Boolean).slice(0,2).map(p=>p[0]).join('').toUpperCase()||'U';
+  }
+}
+window.updateSidebarProfile=updateSidebarProfile;
 
 function saveData(){
   localStorage.setItem('pm_empleados', JSON.stringify(empleados));
@@ -704,7 +732,7 @@ function doLogin(){
   const p=document.getElementById('loginPass').value.trim();
   if(u==='isaifonseca' && p==='fonseca01'){
     window.currentAdminProfile = { usuario: 'isaifonseca', nombre_completo: 'JosÃ© IsaÃ­ Fonseca Vivas' };
-    window.currentAdminProfile = { usuario: 'isaifonseca', nombre_completo: 'Jos\u00e9 Isa\u00ed Fonseca Vivas' };
+    window.currentAdminProfile = { usuario: 'isaifonseca', nombre_completo: 'Jos\u00e9 Isa\u00ed Fonseca Vivas', cargo: 'Administrador' };
     setRootAdmin(true);
     document.getElementById('loginScreen').style.display='none';
     document.getElementById('appShell').style.display='block';
@@ -1251,6 +1279,6 @@ function descargarPDF(reg){
 // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ INIT CALL â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 document.addEventListener('keydown',e=>{if(e.key==='Enter'&&document.getElementById('loginScreen').style.display!=='none') doLogin();});
 </script>
-<script src="supabase-app.js?v=20260603-admins"></script>
+<script src="supabase-app.js?v=20260605-session-sidebar"></script>
 </body>
 </html>
