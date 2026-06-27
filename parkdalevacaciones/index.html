@@ -4,6 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Hilos de Yecapixtla - Administrador de Vacaciones</title>
+<link rel="icon" type="image/png" href="assets/parkdale-logo-ico.png">
 <!-- jsPDF desde CDN confiable con respaldo -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 <script>
@@ -359,10 +360,15 @@ tbody tr:last-child td{border-bottom:none}
               <label>Departamento *</label>
               <select id="ae_depto">
                 <option value="">Selecciona...</option>
-                <option>Open End</option>
-                <option>Cardado</option>
-                <option>Estirado</option>
-                <option>Apertura</option>
+                <option>Hilatura Anillo</option>
+                <option>Hilatura Open End</option>
+                <option>Mantenimiento Cardado</option>
+                <option>Mantenimiento Eléctrico y servicios</option>
+                <option>Mantenimiento hilatura de anillo</option>
+                <option>Mantenimiento hilatura Open End</option>
+                <option>Almacen</option>
+                <option>Mantenimiento polycotton</option>
+                <option>Polycotton</option>
               </select>
             </div>
             <div class="form-group">
@@ -403,12 +409,41 @@ tbody tr:last-child td{border-bottom:none}
           <svg viewBox="0 0 24 24"><path d="M16 11c1.66 0 2.99-1.34 2.99-3S17.66 5 16 5c-1.66 0-3 1.34-3 3s1.34 3 3 3zm-8 0c1.66 0 2.99-1.34 2.99-3S9.66 5 8 5C6.34 5 5 6.34 5 8s1.34 3 3 3zm0 2c-2.33 0-7 1.17-7 3.5V19h14v-2.5c0-2.33-4.67-3.5-7-3.5zm8 0c-.29 0-.62.02-.97.05 1.16.84 1.97 1.97 1.97 3.45V19h6v-2.5c0-2.33-4.67-3.5-7-3.5z"/></svg>
           Lista de Empleados
         </div>
+        <div class="filters-row">
+          <div class="filter-group">
+            <label>N&deg; Empleado</label>
+            <input type="text" id="fe_num" oninput="filterEmpleados()" placeholder="Buscar...">
+          </div>
+          <div class="filter-group">
+            <label>Empleado</label>
+            <input type="text" id="fe_nombre" oninput="filterEmpleados()" placeholder="Buscar...">
+          </div>
+          <div class="filter-group">
+            <label>Departamento</label>
+            <select id="fe_depto" onchange="filterEmpleados()">
+              <option value="">Todos</option>
+            </select>
+          </div>
+          <div class="filter-group">
+            <label>Turno</label>
+            <select id="fe_turno" onchange="filterEmpleados()">
+              <option value="">Todos</option>
+              <option>A</option><option>B</option><option>C</option><option>D</option>
+              <option>L-V</option><option>Azul Especial</option><option>Rojo Especial</option>
+            </select>
+          </div>
+          <button class="btn btn-outline btn-sm" onclick="clearEmpFilters()" style="margin-bottom:1px">
+            <svg viewBox="0 0 24 24"><path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+            Limpiar
+          </button>
+        </div>
         <div class="table-wrap">
           <table id="tableEmpleados">
             <thead><tr><th>N° Emp</th><th>Nombre</th><th>Departamento</th><th>Turno</th><th>Fecha Ingreso</th><th>Acciones</th></tr></thead>
             <tbody id="tbodyEmpleados"></tbody>
           </table>
         </div>
+        <div class="pagination" id="paginacionEmpleados"></div>
       </div>
     </div>
 
@@ -585,7 +620,7 @@ tbody tr:last-child td{border-bottom:none}
             <label>Departamento</label>
             <select id="f_depto" onchange="filterRegistros()">
               <option value="">Todos</option>
-              <option>Open End</option><option>Cardado</option><option>Estirado</option><option>Apertura</option>
+              <option>Hilatura Anillo</option><option>Hilatura Open End</option><option>Mantenimiento Cardado</option><option>Mantenimiento Eléctrico y servicios</option><option>Mantenimiento hilatura de anillo</option><option>Mantenimiento hilatura Open End</option><option>Almacen</option><option>Mantenimiento polycotton</option><option>Polycotton</option>
             </select>
           </div>
           <div class="filter-group">
@@ -631,7 +666,7 @@ tbody tr:last-child td{border-bottom:none}
         <div class="form-group">
           <label>Departamento *</label>
           <select id="edit_depto">
-            <option>Open End</option><option>Cardado</option><option>Estirado</option><option>Apertura</option>
+            <option>Hilatura Anillo</option><option>Hilatura Open End</option><option>Mantenimiento Cardado</option><option>Mantenimiento Eléctrico y servicios</option><option>Mantenimiento hilatura de anillo</option><option>Mantenimiento hilatura Open End</option><option>Almacen</option><option>Mantenimiento polycotton</option><option>Polycotton</option>
           </select>
         </div>
         <div class="form-group">
@@ -690,6 +725,17 @@ let registros = JSON.parse(localStorage.getItem('pm_registros')||'[]');
 let folioCounter = parseInt(localStorage.getItem('pm_folio')||'1');
 window.currentAdminProfile = { usuario: '', nombre_completo: '' };
 window.isRootAdmin = false;
+const DEPARTAMENTOS = [
+  'Hilatura Anillo',
+  'Hilatura Open End',
+  'Mantenimiento Cardado',
+  'Mantenimiento Eléctrico y servicios',
+  'Mantenimiento hilatura de anillo',
+  'Mantenimiento hilatura Open End',
+  'Almacen',
+  'Mantenimiento polycotton',
+  'Polycotton'
+];
 
 function getAuthorizerName(){
   return (window.currentAdminProfile && window.currentAdminProfile.nombre_completo) || 'JosÃ© IsaÃ­ Fonseca Vivas';
@@ -792,9 +838,32 @@ function clearAdministrador(){
 
 // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ INIT â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 function initApp(){
+  populateDepartmentOptions();
   renderStats();
   renderPrincipal();
   prepFormato();
+}
+
+function populateDepartmentOptions(){
+  const configs=[
+    {id:'ae_depto',placeholder:'Selecciona...'},
+    {id:'edit_depto'},
+    {id:'f_depto',placeholder:'Todos'},
+    {id:'fe_depto',placeholder:'Todos'}
+  ];
+  configs.forEach(cfg=>{
+    const sel=document.getElementById(cfg.id);
+    if(!sel) return;
+    const current=sel.value;
+    sel.innerHTML=cfg.placeholder?`<option value="">${cfg.placeholder}</option>`:'';
+    DEPARTAMENTOS.forEach(depto=>{
+      const opt=document.createElement('option');
+      opt.value=depto;
+      opt.textContent=depto;
+      sel.appendChild(opt);
+    });
+    if(current) sel.value=current;
+  });
 }
 
 // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ STATS â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
@@ -857,20 +926,68 @@ function clearAddEmp(){
   document.getElementById('ae_depto').value='';
   document.getElementById('ae_turno').value='';
 }
+let currentEmpPage=1;
+let filteredEmp=[];
+function filterEmpleados(){
+  const num=(document.getElementById('fe_num')?.value||'').trim().toLowerCase();
+  const nombre=(document.getElementById('fe_nombre')?.value||'').trim().toLowerCase();
+  const depto=document.getElementById('fe_depto')?.value||'';
+  const turno=document.getElementById('fe_turno')?.value||'';
+  filteredEmp=empleados.filter(e=>{
+    if(num && !String(e.num).toLowerCase().includes(num)) return false;
+    if(nombre && !String(e.nombre).toLowerCase().includes(nombre)) return false;
+    if(depto && e.departamento!==depto) return false;
+    if(turno && e.turno!==turno) return false;
+    return true;
+  });
+  currentEmpPage=1;
+  renderEmpleados();
+}
+function clearEmpFilters(){
+  ['fe_num','fe_nombre'].forEach(id=>{const el=document.getElementById(id); if(el) el.value='';});
+  const depto=document.getElementById('fe_depto');
+  const turno=document.getElementById('fe_turno');
+  if(depto) depto.value='';
+  if(turno) turno.value='';
+  filterEmpleados();
+}
 function renderEmpleados(){
   const tbody=document.getElementById('tbodyEmpleados');
   const head=document.querySelector('#tableEmpleados thead tr');
   if(head) head.innerHTML='<th>N&deg; Emp</th><th>Nombre</th><th>Departamento</th><th>Turno</th><th>Fecha Ingreso</th><th>D&iacute;as Disponibles</th><th>Acciones</th>';
   tbody.innerHTML='';
-  if(!empleados.length){
+  const list=hasEmpFilters()?filteredEmp:empleados;
+  if(!list.length){
     tbody.innerHTML='<tr><td colspan="7" style="text-align:center;padding:24px;color:var(--gray-500)">No hay empleados registrados.</td></tr>';
+    renderEmpPaginacion(0);
     return;
   }
-  empleados.forEach((e,i)=>{
+  const totalPages=Math.max(1,Math.ceil(list.length/PER_PAGE));
+  if(currentEmpPage>totalPages) currentEmpPage=totalPages;
+  const start=(currentEmpPage-1)*PER_PAGE, end=Math.min(start+PER_PAGE,list.length);
+  list.slice(start,end).forEach(e=>{
+    const i=empleados.indexOf(e);
     const tr=document.createElement('tr');
     tr.innerHTML=`<td><strong>${e.num}</strong></td><td>${e.nombre}</td><td><span class="badge badge-blue">${e.departamento}</span></td><td><span class="badge badge-green">${e.turno}</span></td><td>${fmtDate(e.fecha_ingreso)}</td><td><span class="badge badge-green">${parseInt(e.dias_disponibles,10)||0} d&iacute;as</span></td><td><button class="btn btn-warning btn-sm" onclick="openEditEmp(${i})"><svg viewBox="0 0 24 24" style="width:13px;height:13px;fill:currentColor"><path d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04c.39-.39.39-1.02 0-1.41l-2.34-2.34c-.39-.39-1.02-.39-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z"/></svg> Editar</button></td>`;
     tbody.appendChild(tr);
   });
+  renderEmpPaginacion(list.length);
+}
+function hasEmpFilters(){
+  return ['fe_num','fe_nombre','fe_depto','fe_turno'].some(id=>!!document.getElementById(id)?.value);
+}
+function renderEmpPaginacion(total){
+  const wrap=document.getElementById('paginacionEmpleados');
+  if(!wrap) return;
+  const pages=Math.ceil(total/PER_PAGE);
+  wrap.innerHTML='';
+  for(let i=1;i<=pages;i++){
+    const btn=document.createElement('button');
+    btn.className='page-btn'+(i===currentEmpPage?' active':'');
+    btn.textContent=i;
+    btn.onclick=(()=>{const p=i;return()=>{currentEmpPage=p;renderEmpleados();}})();
+    wrap.appendChild(btn);
+  }
 }
 function openEditEmp(i){
   const e=empleados[i];
@@ -942,7 +1059,11 @@ function fillEmpleadoData(){
   document.getElementById('gf_antiguedad').value=texto;
   const diasAplican=calcDiasVacaciones(anios,meses);
   document.getElementById('gf_dias_aplican').value=diasAplican+' días';
-  const disponibles=parseInt(e.dias_disponibles,10)||0;
+  let disponibles=calcDiasDisponiblesVigentes(e);
+  if(disponibles!==parseInt(e.dias_disponibles,10)){
+    e.dias_disponibles=disponibles;
+    saveData();
+  }
   document.getElementById('gf_dias_disp').value=disponibles+' días';
   calcVacaciones();
 }
@@ -958,6 +1079,7 @@ function calcAntiguedad(fechaIngreso){
   return {anios,meses,texto};
 }
 function calcDiasVacaciones(anios,meses){
+  if(anios===0 && meses>=6) return 6;
   if(anios<1) return 0;
   if(anios===1) return 12;
   if(anios===2) return 14;
@@ -974,6 +1096,15 @@ function calcDiasVacaciones(anios,meses){
 }
 function calcTomadosAcum(numEmp){
   return registros.filter(r=>String(r.num_emp)===String(numEmp)).reduce((s,r)=>s+(r.dias_tomados||0),0);
+}
+function calcDiasDisponiblesVigentes(emp){
+  if(!emp) return 0;
+  const ant=calcAntiguedad(emp.fecha_ingreso);
+  const derecho=calcDiasVacaciones(ant.anios,ant.meses);
+  const tomados=calcTomadosAcum(emp.num);
+  const calculados=Math.max(0,derecho-tomados);
+  const guardados=parseInt(emp.dias_disponibles,10);
+  return Math.max(calculados,Number.isFinite(guardados)?guardados:0);
 }
 function countWeekdays(start, end){
   const s=new Date(start+'T12:00:00');
@@ -1121,7 +1252,27 @@ function rf(label,val){
 }
 
 // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ PDF â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
-function descargarPDF(reg){
+let pdfLogoDataUrl='';
+async function loadPdfLogoDataUrl(){
+  if(pdfLogoDataUrl) return pdfLogoDataUrl;
+  try{
+    const res=await fetch('assets/parkdale-logo-crop.png?v=20260626-logo',{cache:'no-store'});
+    if(!res.ok) throw new Error('Logo no disponible');
+    const blob=await res.blob();
+    pdfLogoDataUrl=await new Promise((resolve,reject)=>{
+      const reader=new FileReader();
+      reader.onload=()=>resolve(reader.result);
+      reader.onerror=reject;
+      reader.readAsDataURL(blob);
+    });
+    return pdfLogoDataUrl;
+  }catch(_){
+    const img=document.getElementById('parkdaleLogoPreload');
+    if(img && img.complete) return img;
+    return null;
+  }
+}
+async function descargarPDF(reg){
   try {
     // Verificar que jsPDF esté disponible
     if(typeof window.jspdf === 'undefined') {
@@ -1135,126 +1286,183 @@ function descargarPDF(reg){
     }
     const { jsPDF } = window.jspdf;
     const doc = new jsPDF({orientation:'portrait',unit:'mm',format:'letter'});
-    const W = 215.9, M = 18;
+    const W = 215.9, M = 14;
     const navy = [52,78,65];
     const navy2 = [58,90,64];
     const accent = [88,129,87];
     const softBlue = [247,250,246];
     
     // Encabezado limpio con logo real de la plataforma
-    const logo = document.getElementById('parkdaleLogoPreload');
-    if (logo && logo.complete) {
+    const logo = await loadPdfLogoDataUrl();
+    if (logo) {
       try {
-        doc.addImage(logo, 'PNG', M, 10, 52, 19);
-      } catch (_) {}
+        doc.addImage(logo, 'PNG', M, 8, 52, 18);
+      } catch (logoError) {
+        console.warn('No se pudo insertar el logo en el PDF:', logoError);
+      }
     }
 
     doc.setTextColor(...navy);
     doc.setFont('helvetica','normal');
-    doc.setFontSize(17);
-    doc.text('Hilos de Yecapixtla',W/2,19,{align:'center'});
+    doc.setFontSize(15);
+    doc.text('Hilos de Yecapixtla',W/2,17,{align:'center'});
     doc.setTextColor(...navy2);
-    doc.setFontSize(11);
+    doc.setFontSize(10);
     doc.setFont('helvetica','normal');
-    doc.text('Formato de Autorización de Vacaciones',W/2,27,{align:'center'});
+    doc.text('Formato de Autorización de Vacaciones',W/2,24,{align:'center'});
     // Folio badge
     doc.setFillColor(...accent);
-    doc.roundedRect(W-M-35,11,40,13,3,3,'F');
+    doc.roundedRect(W-M-31,9,35,12,3,3,'F');
     doc.setTextColor(255,255,255);
     doc.setFont('helvetica','normal');
     doc.setFontSize(8);
-    doc.text('FOLIO',W-M-15,16,{align:'center'});
-    doc.setFontSize(12);
-    doc.text(reg.folio,W-M-15,22,{align:'center'});
-    let y=44;
+    doc.text('FOLIO',W-M-13.5,13.7,{align:'center'});
+    doc.setFontSize(11);
+    doc.text(reg.folio,W-M-13.5,19.2,{align:'center'});
+    let y=34;
     
     // Section helper
     function section(title,color){
       doc.setFillColor(...color);
-      doc.roundedRect(M,y,W-M*2,7,2,2,'F');
+      doc.roundedRect(M,y,W-M*2,6,2,2,'F');
       doc.setTextColor(255,255,255);
       doc.setFont('helvetica','normal');
-      doc.setFontSize(9);
-      doc.text(title,M+4,y+4.8);
-      y+=11;
+      doc.setFontSize(8);
+      doc.text(title,M+4,y+4.2);
+      y+=8;
     }
     function row(label,value,col2Label,col2Value){
       const lw=(W-M*2)/2-4;
       doc.setFillColor(...softBlue);
-      doc.rect(M,y,W-M*2,8,'F');
+      doc.rect(M,y,W-M*2,7,'F');
       doc.setDrawColor(217,227,216);
-      doc.rect(M,y,W-M*2,8,'S');
+      doc.rect(M,y,W-M*2,7,'S');
       doc.setTextColor(100,116,106);
       doc.setFont('helvetica','normal');
-      doc.setFontSize(7.5);
-      doc.text(label,M+3,y+3.2);
+      doc.setFontSize(7);
+      doc.text(label,M+3,y+2.8);
       doc.setTextColor(31,47,40);
       doc.setFont('helvetica','normal');
-      doc.setFontSize(9);
-      doc.text(String(value||'—'),M+3,y+7);
+      doc.setFontSize(8);
+      doc.text(String(value||'—'),M+3,y+6);
       if(col2Label){
         doc.setTextColor(100,116,106);
         doc.setFont('helvetica','normal');
-        doc.setFontSize(7.5);
-        doc.text(col2Label,M+lw+7,y+3.2);
+        doc.setFontSize(7);
+        doc.text(col2Label,M+lw+7,y+2.8);
         doc.setTextColor(31,47,40);
         doc.setFont('helvetica','normal');
-        doc.setFontSize(9);
-        doc.text(String(col2Value||'—'),M+lw+7,y+7);
+        doc.setFontSize(8);
+        doc.text(String(col2Value||'—'),M+lw+7,y+6);
       }
-      y+=10;
+      y+=8;
+    }
+    function ensureSpace(height){
+      if(y+height>262){
+        doc.addPage();
+        y=14;
+      }
+    }
+    function vacationHistoryTable(){
+      y+=4;
+      const history=registros
+        .filter(r=>{
+          const sameEmployee=String(r.num_emp)===String(reg.num_emp) || String(r.empleado||'').trim().toLowerCase()===String(reg.empleado||'').trim().toLowerCase();
+          return sameEmployee && String(r.folio)!==String(reg.folio);
+        })
+        .sort((a,b)=>String(a.fecha_inicio||'').localeCompare(String(b.fecha_inicio||'')));
+      const totalPrevio=history.reduce((sum,r)=>sum+(parseInt(r.dias_tomados,10)||0),0);
+      ensureSpace(22);
+      section('SECCION 4 - VACACIONES TOMADAS ANTERIORMENTE',navy2);
+      const tableW=W-M*2;
+      const c1=tableW*0.34, c2=tableW*0.34;
+      function tableHeader(){
+        doc.setFillColor(...navy2);
+        doc.rect(M,y,tableW,7,'F');
+        doc.setTextColor(255,255,255);
+        doc.setFont('helvetica','normal');
+        doc.setFontSize(7.5);
+        doc.text('Fecha Inicio',M+3,y+4.8);
+        doc.text('Fecha Fin',M+c1+3,y+4.8);
+        doc.text('Dias Tomados',M+c1+c2+3,y+4.8);
+        y+=7;
+      }
+      function tableRow(inicio,fin,dias){
+        ensureSpace(8);
+        doc.setFillColor(...softBlue);
+        doc.rect(M,y,tableW,7,'F');
+        doc.setDrawColor(217,227,216);
+        doc.rect(M,y,tableW,7,'S');
+        doc.setTextColor(31,47,40);
+        doc.setFont('helvetica','normal');
+        doc.setFontSize(8);
+        doc.text(String(inicio||'-'),M+3,y+4.9);
+        doc.text(String(fin||'-'),M+c1+3,y+4.9);
+        doc.text(String(dias||0)+' dias',M+c1+c2+3,y+4.9);
+        y+=7;
+      }
+      tableHeader();
+      if(!history.length){
+        tableRow('Sin registros anteriores','',0);
+      } else {
+        history.forEach(h=>tableRow(fmtDate(h.fecha_inicio),fmtDate(h.fecha_fin),h.dias_tomados));
+        tableRow('Total previo','',totalPrevio);
+      }
+      y+=4;
     }
     section('SECCIÓN 1 — DATOS DEL EMPLEADO',navy);
     row('Folio',reg.folio,'N° de Empleado',reg.num_emp);
     row('Empleado',reg.empleado,'Departamento',reg.departamento);
     row('Turno',reg.turno,'Fecha de Ingreso',fmtDate(reg.fecha_ingreso));
-    y+=4;
+    y+=2;
     section('SECCIÓN 2 — ANTIGÜEDAD',navy);
     row('Antigüedad',reg.antiguedad,'Días de Vacaciones que Aplican',reg.dias_aplican);
-    y+=4;
+    y+=2;
     section('SECCIÓN 3 — VACACIONES',navy);
     row('Fecha de Inicio',fmtDate(reg.fecha_inicio),'Fecha de Fin',fmtDate(reg.fecha_fin));
     row('Días Disponibles',reg.dias_disponibles+' días','Días Tomados',reg.dias_tomados+' días');
     row('Fecha de Regreso',fmtDate(reg.fecha_regreso),'Días Pendientes por Disfrutar',reg.dias_pendientes+' días');
+    vacationHistoryTable();
+    ensureSpace(58);
     // Divider
-    y+=10;
+    y+=5;
     doc.setDrawColor(217,227,216);
     doc.setLineWidth(0.5);
     doc.line(M,y,W-M,y);
-    y+=12;
+    y+=8;
     // Firmas
     doc.setFillColor(...softBlue);
-    doc.roundedRect(M,y,W-M*2,7,2,2,'F');
+    doc.roundedRect(M,y,W-M*2,6,2,2,'F');
     doc.setTextColor(...navy);
     doc.setFont('helvetica','normal');
-    doc.setFontSize(9);
-    doc.text('FIRMAS DE AUTORIZACIÓN',W/2,y+5,{align:'center'});
-    y+=14;
+    doc.setFontSize(8);
+    doc.text('FIRMAS DE AUTORIZACIÓN',W/2,y+4.3,{align:'center'});
+    y+=10;
     const fw=(W-M*2-10)/2;
     // Firma 1
     doc.setDrawColor(...navy);
     doc.setLineWidth(0.8);
-    doc.line(M,y+20,M+fw,y+20);
+    doc.line(M,y+16,M+fw,y+16);
     doc.setTextColor(...navy);
     doc.setFont('helvetica','normal');
-    doc.setFontSize(9);
-    doc.text(String(reg.autorizado_por || getAuthorizerName()),M+fw/2,y+25,{align:'center'});
+    doc.setFontSize(8);
+    doc.text(String(reg.autorizado_por || getAuthorizerName()),M+fw/2,y+21,{align:'center'});
     doc.setTextColor(100,116,106);
     doc.setFont('helvetica','normal');
-    doc.setFontSize(8);
-    doc.text('Autoriza Vacaciones',M+fw/2,y+30,{align:'center'});
+    doc.setFontSize(7.5);
+    doc.text('Autoriza Vacaciones',M+fw/2,y+25,{align:'center'});
     // Firma 2
     const x2=M+fw+10;
     doc.setDrawColor(...navy);
-    doc.line(x2,y+20,x2+fw,y+20);
+    doc.line(x2,y+16,x2+fw,y+16);
     doc.setTextColor(...navy);
     doc.setFont('helvetica','normal');
-    doc.setFontSize(9);
-    doc.text(reg.empleado,x2+fw/2,y+25,{align:'center'});
+    doc.setFontSize(8);
+    doc.text(reg.empleado,x2+fw/2,y+21,{align:'center'});
     doc.setTextColor(100,116,106);
     doc.setFont('helvetica','normal');
-    doc.setFontSize(8);
-    doc.text('Empleado — N° '+reg.num_emp,x2+fw/2,y+30,{align:'center'});
+    doc.setFontSize(7.5);
+    doc.text('Empleado — N° '+reg.num_emp,x2+fw/2,y+25,{align:'center'});
     // Footer
     const pageH=279.4;
     doc.setFillColor(...navy);
@@ -1274,6 +1482,6 @@ function descargarPDF(reg){
 // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ INIT CALL â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 document.addEventListener('keydown',e=>{if(e.key==='Enter'&&document.getElementById('loginScreen').style.display!=='none') doLogin();});
 </script>
-<script src="supabase-app.js?v=20260605-session-sidebar"></script>
+<script src="supabase-app.js?v=20260626-pdf-logo-dataurl"></script>
 </body>
 </html>
