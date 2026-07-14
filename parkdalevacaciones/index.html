@@ -656,6 +656,7 @@ tbody tr:last-child td{border-bottom:none}
     </div>
     <div class="modal-body">
       <input type="hidden" id="edit_idx">
+      <input type="hidden" id="edit_dias_disponibles_original">
       <div class="form-grid">
         <div class="form-group">
           <label>N° de Empleado *</label>
@@ -918,7 +919,7 @@ function addEmpleado(){
   }
   const ant=calcAntiguedad(ingreso);
   const diasDisponibles=calcDiasVacaciones(ant.anios,ant.meses);
-  empleados.push({num,nombre,departamento:depto,turno,fecha_ingreso:ingreso,dias_disponibles:diasDisponibles});
+  empleados.push({num,nombre,departamento:depto,turno,fecha_ingreso:ingreso,dias_disponibles:diasDisponibles,dias_disponibles_manual:false});
   saveData();
   showToast('Empleado registrado correctamente.','success');
   clearAddEmp();
@@ -970,7 +971,8 @@ function renderEmpleados(){
   list.slice(start,end).forEach(e=>{
     const i=empleados.indexOf(e);
     const tr=document.createElement('tr');
-    tr.innerHTML=`<td><strong>${e.num}</strong></td><td>${e.nombre}</td><td><span class="badge badge-blue">${e.departamento}</span></td><td><span class="badge badge-green">${e.turno}</span></td><td>${fmtDate(e.fecha_ingreso)}</td><td><span class="badge badge-green">${parseInt(e.dias_disponibles,10)||0} d&iacute;as</span></td><td><button class="btn btn-warning btn-sm" onclick="openEditEmp(${i})"><svg viewBox="0 0 24 24" style="width:13px;height:13px;fill:currentColor"><path d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04c.39-.39.39-1.02 0-1.41l-2.34-2.34c-.39-.39-1.02-.39-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z"/></svg> Editar</button></td>`;
+    const diasDisponibles=calcDiasDisponiblesVigentes(e);
+    tr.innerHTML=`<td><strong>${e.num}</strong></td><td>${e.nombre}</td><td><span class="badge badge-blue">${e.departamento}</span></td><td><span class="badge badge-green">${e.turno}</span></td><td>${fmtDate(e.fecha_ingreso)}</td><td><span class="badge badge-green">${diasDisponibles} d&iacute;as</span></td><td><button class="btn btn-warning btn-sm" onclick="openEditEmp(${i})"><svg viewBox="0 0 24 24" style="width:13px;height:13px;fill:currentColor"><path d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04c.39-.39.39-1.02 0-1.41l-2.34-2.34c-.39-.39-1.02-.39-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z"/></svg> Editar</button></td>`;
     tbody.appendChild(tr);
   });
   renderEmpPaginacion(list.length);
@@ -999,7 +1001,9 @@ function openEditEmp(i){
   document.getElementById('edit_depto').value=e.departamento;
   document.getElementById('edit_turno').value=e.turno;
   document.getElementById('edit_ingreso').value=e.fecha_ingreso;
-  document.getElementById('edit_dias_disponibles').value=parseInt(e.dias_disponibles,10)||0;
+  const diasDisponibles=calcDiasDisponiblesVigentes(e);
+  document.getElementById('edit_dias_disponibles').value=diasDisponibles;
+  document.getElementById('edit_dias_disponibles_original').value=diasDisponibles;
   openModal('modalEditEmp');
 }
 function actualizarEmpleado(){
@@ -1010,9 +1014,11 @@ function actualizarEmpleado(){
   const turno=document.getElementById('edit_turno').value;
   const ingreso=document.getElementById('edit_ingreso').value;
   const diasDisponibles=parseInt(document.getElementById('edit_dias_disponibles').value,10);
+  const diasOriginales=parseInt(document.getElementById('edit_dias_disponibles_original').value,10);
   if(!num||!nombre||!ingreso||!Number.isFinite(diasDisponibles)){showToast('Por favor completa todos los campos.','error');return;}
   if(empleados.some((e,ei)=>String(e.num)===String(num)&&ei!==i)){showToast('El número de empleado ya existe.','error');return;}
-  empleados[i]={num,nombre,departamento:depto,turno,fecha_ingreso:ingreso,dias_disponibles:diasDisponibles};
+  const diasEditados=diasDisponibles!==diasOriginales;
+  empleados[i]={...empleados[i],num,nombre,departamento:depto,turno,fecha_ingreso:ingreso,dias_disponibles:diasDisponibles,dias_disponibles_manual:empleados[i].dias_disponibles_manual===true||diasEditados};
   saveData();
   closeModal('modalEditEmp');
   renderEmpleados();
@@ -1061,11 +1067,7 @@ function fillEmpleadoData(){
   document.getElementById('gf_antiguedad').value=texto;
   const diasAplican=calcDiasVacaciones(anios,meses);
   document.getElementById('gf_dias_aplican').value=diasAplican+' días';
-  let disponibles=calcDiasDisponiblesVigentes(e);
-  if(disponibles!==parseInt(e.dias_disponibles,10)){
-    e.dias_disponibles=disponibles;
-    saveData();
-  }
+  const disponibles=calcDiasDisponiblesVigentes(e);
   document.getElementById('gf_dias_disp').value=disponibles+' días';
   calcVacaciones();
 }
@@ -1101,12 +1103,14 @@ function calcTomadosAcum(numEmp){
 }
 function calcDiasDisponiblesVigentes(emp){
   if(!emp) return 0;
+  if(emp.dias_disponibles_manual===true){
+    const guardados=parseInt(emp.dias_disponibles,10);
+    return Math.max(0,Number.isFinite(guardados)?guardados:0);
+  }
   const ant=calcAntiguedad(emp.fecha_ingreso);
   const derecho=calcDiasVacaciones(ant.anios,ant.meses);
   const tomados=calcTomadosAcum(emp.num);
-  const calculados=Math.max(0,derecho-tomados);
-  const guardados=parseInt(emp.dias_disponibles,10);
-  return Math.max(calculados,Number.isFinite(guardados)?guardados:0);
+  return Math.max(0,derecho-tomados);
 }
 function countWeekdays(start, end){
   const s=new Date(start+'T12:00:00');
