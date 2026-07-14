@@ -185,7 +185,8 @@
       departamento: row.departamento,
       turno: row.turno,
       fecha_ingreso: row.fecha_ingreso,
-      dias_disponibles: row.dias_disponibles || 0
+      dias_disponibles: row.dias_disponibles || 0,
+      dias_disponibles_manual: row.dias_disponibles_manual === true
     };
   }
 
@@ -253,6 +254,7 @@
     } else {
       payload.dias_disponibles = 0;
     }
+    payload.dias_disponibles_manual = false;
     return payload;
   }
 
@@ -448,6 +450,9 @@
       const i = parseInt(document.getElementById('edit_idx').value, 10);
       const original = empleados[i];
       const payload = employeePayloadFromForm('edit');
+      const diasOriginales = parseInt(document.getElementById('edit_dias_disponibles_original').value, 10);
+      const diasEditados = payload.dias_disponibles !== diasOriginales;
+      payload.dias_disponibles_manual = (original && original.dias_disponibles_manual === true) || diasEditados;
 
       if (!payload.num || !payload.nombre || !payload.departamento || !payload.turno || !payload.fecha_ingreso) {
         toast('Por favor completa todos los campos.', 'error');
@@ -551,7 +556,8 @@
           departamento: employee.departamento,
           turno: employee.turno,
           fecha_ingreso: employee.fecha_ingreso,
-          dias_disponibles: employee.dias_disponibles
+          dias_disponibles: employee.dias_disponibles,
+          dias_disponibles_manual: employee.dias_disponibles_manual === true
         });
       }
       registros.unshift(saved);
