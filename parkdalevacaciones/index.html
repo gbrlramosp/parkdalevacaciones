@@ -231,6 +231,34 @@ tbody tr:last-child td{border-bottom:none}
   .card{padding:17px 12px}
   .toast-stack{right:12px;top:12px;width:calc(100vw - 24px)}
 }
+
+/* Botones de acciones dentro de las tablas */
+#tablePrincipal .btn-outline,
+#page-consultarRegistros .table-wrap .btn-outline{
+  min-height:30px;
+  height:30px;
+  padding:4px 10px;
+  background:#2563eb;
+  color:#fff;
+  border-color:#2563eb;
+}
+#tablePrincipal .btn-outline:hover,
+#page-consultarRegistros .table-wrap .btn-outline:hover{
+  background:#1d4ed8;
+  border-color:#1d4ed8;
+}
+#tableEmpleados .btn-warning{
+  min-height:30px;
+  height:30px;
+  padding:4px 10px;
+  background:#374151;
+  color:#fff;
+  border-color:#374151;
+}
+#tableEmpleados .btn-warning:hover{
+  background:#1f2937;
+  border-color:#1f2937;
+}
 </style>
 </head>
 <body>
@@ -328,7 +356,7 @@ tbody tr:last-child td{border-bottom:none}
         </div>
         <div class="table-wrap">
           <table id="tablePrincipal">
-            <thead><tr><th>#Emp</th><th>Empleado</th><th>Departamento</th><th>Fecha Inicio</th><th>Fecha Fin</th><th>Días Tomados</th><th>Acciones</th></tr></thead>
+            <thead><tr><th>#Emp</th><th>Empleado</th><th>Departamento</th><th>Fecha Inicio</th><th>Fecha Fin</th><th>Días Tomados</th><th>Ver</th></tr></thead>
             <tbody id="tbodyPrincipal"></tbody>
           </table>
         </div>
@@ -441,7 +469,7 @@ tbody tr:last-child td{border-bottom:none}
         </div>
         <div class="table-wrap">
           <table id="tableEmpleados">
-            <thead><tr><th>N° Emp</th><th>Nombre</th><th>Departamento</th><th>Turno</th><th>Fecha Ingreso</th><th>Acciones</th></tr></thead>
+            <thead><tr><th>N° Emp</th><th>Nombre</th><th>Departamento</th><th>Turno</th><th>Fecha Ingreso</th><th>Ver</th></tr></thead>
             <tbody id="tbodyEmpleados"></tbody>
           </table>
         </div>
@@ -636,7 +664,7 @@ tbody tr:last-child td{border-bottom:none}
         </div>
         <div class="table-wrap">
           <table>
-            <thead><tr><th>Folio</th><th>N° Emp</th><th>Empleado</th><th>Departamento</th><th>Fecha Ingreso</th><th>Fecha Inicio</th><th>Días</th><th>Acciones</th></tr></thead>
+            <thead><tr><th>Folio</th><th>N° Emp</th><th>Empleado</th><th>Departamento</th><th>Fecha Ingreso</th><th>Fecha Inicio</th><th>Días</th><th>Ver</th></tr></thead>
             <tbody id="tbodyConsulta"></tbody>
           </table>
         </div>
@@ -962,7 +990,7 @@ function clearEmpFilters(){
 function renderEmpleados(){
   const tbody=document.getElementById('tbodyEmpleados');
   const head=document.querySelector('#tableEmpleados thead tr');
-  if(head) head.innerHTML='<th>N&deg; Emp</th><th>Nombre</th><th>Departamento</th><th>Turno</th><th>Fecha Ingreso</th><th>D&iacute;as Disponibles</th><th>Acciones</th>';
+  if(head) head.innerHTML='<th>N&deg; Emp</th><th>Nombre</th><th>Departamento</th><th>Turno</th><th>Fecha Ingreso</th><th>D&iacute;as Disponibles</th><th>Ver</th>';
   tbody.innerHTML='';
   const list=hasEmpFilters()?filteredEmp:empleados;
   if(!list.length){
